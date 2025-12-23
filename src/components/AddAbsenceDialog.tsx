@@ -28,6 +28,7 @@ interface AddAbsenceDialogProps {
     note?: string;
   }) => void;
   isLoading: boolean;
+  defaultDate?: string;
 }
 
 const absenceTypes: { value: AbsenceType; label: string; icon: React.ReactNode; color: string }[] = [
@@ -36,13 +37,21 @@ const absenceTypes: { value: AbsenceType; label: string; icon: React.ReactNode; 
   { value: "work_from_home", label: "Delo od doma", icon: <Briefcase className="h-5 w-5" />, color: "bg-blue-500/20 text-blue-600 border-blue-500/30" },
 ];
 
-export function AddAbsenceDialog({ onSubmit, isLoading }: AddAbsenceDialogProps) {
+export function AddAbsenceDialog({ onSubmit, isLoading, defaultDate }: AddAbsenceDialogProps) {
   const [open, setOpen] = useState(false);
   const [selectedType, setSelectedType] = useState<AbsenceType | null>(null);
   const [dateRange, setDateRange] = useState<{ from: Date | undefined; to: Date | undefined }>({
-    from: undefined,
+    from: defaultDate ? new Date(defaultDate + "T00:00:00") : undefined,
     to: undefined,
   });
+
+  // Update date range when defaultDate changes
+  const handleOpen = (isOpen: boolean) => {
+    setOpen(isOpen);
+    if (isOpen && defaultDate) {
+      setDateRange({ from: new Date(defaultDate + "T00:00:00"), to: undefined });
+    }
+  };
   const [note, setNote] = useState("");
 
   const handleSubmit = () => {
@@ -64,7 +73,7 @@ export function AddAbsenceDialog({ onSubmit, isLoading }: AddAbsenceDialogProps)
   const isValid = selectedType && dateRange.from;
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
+    <Dialog open={open} onOpenChange={handleOpen}>
       <DialogTrigger asChild>
         <Button variant="outline" className="w-full">
           Dodaj odsotnost / delo od doma

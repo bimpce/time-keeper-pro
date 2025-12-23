@@ -169,7 +169,8 @@ const CalendarPage = () => {
 
         <AddAbsenceDialog 
           onSubmit={(data) => createAbsence.mutate(data)} 
-          isLoading={createAbsence.isPending} 
+          isLoading={createAbsence.isPending}
+          defaultDate={selectedDate || undefined}
         />
 
         {selectedDate && selectedSummary && (
