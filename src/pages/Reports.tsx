@@ -36,18 +36,31 @@ const Reports = () => {
     return day === 0 || day === 6;
   };
 
-  // Calculate effective work minutes for a date (includes holidays and absences, but not on weekends)
+  // Calculate effective work minutes for a date
   const getEffectiveWorkMinutes = (dateStr: string) => {
     const summary = calculateDailySummary(entries, dateStr);
     const holiday = isHoliday(dateStr, holidays);
     const absence = getAbsenceForDate(dateStr);
     const isWeekend = isWeekendDate(dateStr);
     
-    // Holidays and absences count as 8 hours, but NOT on weekends
+    // If there's actual work entered, use that (even on holidays/weekends)
+    if (summary.workMinutes > 0) {
+      return summary.workMinutes;
+    }
+    
+    // Holidays and absences on weekdays count as 8 hours
     if (!isWeekend && (holiday || absence)) {
       return STANDARD_WORK_MINUTES;
     }
-    return summary.workMinutes;
+    
+    return 0;
+  };
+
+  // Check if work on a day is overtime (weekend or holiday)
+  const isOvertimeDay = (dateStr: string) => {
+    const isWeekend = isWeekendDate(dateStr);
+    const holiday = isHoliday(dateStr, holidays);
+    return isWeekend || !!holiday;
   };
 
   // Calculate weekly summary including holidays and absences
@@ -62,14 +75,19 @@ const Reports = () => {
       const dateStr = date.toISOString().split("T")[0];
       
       const effectiveMinutes = getEffectiveWorkMinutes(dateStr);
+      const summary = calculateDailySummary(entries, dateStr);
       
       if (effectiveMinutes > 0) {
         totalWorkMinutes += effectiveMinutes;
         daysWorked++;
         
-        // Only count overtime for actual work entries (not holidays/absences)
-        const summary = calculateDailySummary(entries, dateStr);
-        totalOvertimeMinutes += summary.overtimeMinutes;
+        // Work on weekends/holidays counts entirely as overtime
+        if (isOvertimeDay(dateStr) && summary.workMinutes > 0) {
+          totalOvertimeMinutes += summary.workMinutes;
+        } else {
+          // Regular day overtime (work > 8 hours)
+          totalOvertimeMinutes += summary.overtimeMinutes;
+        }
       }
     }
 
@@ -83,7 +101,6 @@ const Reports = () => {
 
   // Calculate monthly summary including holidays and absences
   const calculateMonthSummary = () => {
-    const firstDay = new Date(year, month, 1);
     const lastDay = new Date(year, month + 1, 0);
     
     let totalWorkMinutes = 0;
@@ -94,14 +111,19 @@ const Reports = () => {
       const dateStr = `${year}-${String(month + 1).padStart(2, "0")}-${String(d).padStart(2, "0")}`;
       
       const effectiveMinutes = getEffectiveWorkMinutes(dateStr);
+      const summary = calculateDailySummary(entries, dateStr);
       
       if (effectiveMinutes > 0) {
         totalWorkMinutes += effectiveMinutes;
         daysWorked++;
         
-        // Only count overtime for actual work entries (not holidays/absences)
-        const summary = calculateDailySummary(entries, dateStr);
-        totalOvertimeMinutes += summary.overtimeMinutes;
+        // Work on weekends/holidays counts entirely as overtime
+        if (isOvertimeDay(dateStr) && summary.workMinutes > 0) {
+          totalOvertimeMinutes += summary.workMinutes;
+        } else {
+          // Regular day overtime (work > 8 hours)
+          totalOvertimeMinutes += summary.overtimeMinutes;
+        }
       }
     }
 
