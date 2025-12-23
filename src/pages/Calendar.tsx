@@ -52,9 +52,13 @@ const CalendarPage = () => {
     const absence = getAbsenceForDate(dateStr);
     const isWeekend = isWeekendDate(dateStr);
     
-    // Holidays and absences count as 8 hours (480 minutes), but NOT on weekends
-    // Weekends are already non-working days
-    const effectiveWorkMinutes = (!isWeekend && (holiday || absence)) ? 480 : summary.workMinutes;
+    let effectiveWorkMinutes = summary.workMinutes;
+    
+    // If there's actual work entered, use that (even on holidays/weekends)
+    // Otherwise, holidays and absences on weekdays count as 8 hours
+    if (summary.workMinutes === 0 && !isWeekend && (holiday || absence)) {
+      effectiveWorkMinutes = 480;
+    }
     
     let status = "none";
     if (effectiveWorkMinutes > 0 && effectiveWorkMinutes < 480) status = "partial";
