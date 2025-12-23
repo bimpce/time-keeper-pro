@@ -1,15 +1,20 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useTimeEntries } from "@/hooks/useTimeEntries";
-import { calculateWeeklySummary, calculateMonthlySummary, formatMinutesToTime, getWeekNumber } from "@/lib/timeCalculations";
+import { useAbsences } from "@/hooks/useAbsences";
+import { calculateDailySummary, formatMinutesToTime, getWeekNumber } from "@/lib/timeCalculations";
+import { getSlovenianHolidays, isHoliday } from "@/lib/slovenianHolidays";
 import { BottomNav } from "@/components/BottomNav";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { ChevronLeft, ChevronRight, Clock, Calendar, TrendingUp, Users } from "lucide-react";
 
+const STANDARD_WORK_MINUTES = 480; // 8 hours
+
 const Reports = () => {
   const [currentDate, setCurrentDate] = useState(new Date());
   const { entries } = useTimeEntries();
+  const { absences, getAbsenceForDate } = useAbsences();
 
   const getWeekStart = (date: Date) => {
     const d = new Date(date);
@@ -19,8 +24,89 @@ const Reports = () => {
   };
 
   const weekStart = getWeekStart(currentDate);
-  const weeklySummary = calculateWeeklySummary(entries, weekStart);
-  const monthlySummary = calculateMonthlySummary(entries, currentDate.getFullYear(), currentDate.getMonth());
+  const year = currentDate.getFullYear();
+  const month = currentDate.getMonth();
+
+  const holidays = useMemo(() => getSlovenianHolidays(year), [year]);
+
+  // Calculate effective work minutes for a date (includes holidays and absences)
+  const getEffectiveWorkMinutes = (dateStr: string) => {
+    const summary = calculateDailySummary(entries, dateStr);
+    const holiday = isHoliday(dateStr, holidays);
+    const absence = getAbsenceForDate(dateStr);
+    
+    // Holidays and absences count as 8 hours
+    if (holiday || absence) {
+      return STANDARD_WORK_MINUTES;
+    }
+    return summary.workMinutes;
+  };
+
+  // Calculate weekly summary including holidays and absences
+  const calculateWeekSummary = () => {
+    let totalWorkMinutes = 0;
+    let totalOvertimeMinutes = 0;
+    let daysWorked = 0;
+
+    for (let i = 0; i < 7; i++) {
+      const date = new Date(weekStart);
+      date.setDate(date.getDate() + i);
+      const dateStr = date.toISOString().split("T")[0];
+      
+      const effectiveMinutes = getEffectiveWorkMinutes(dateStr);
+      
+      if (effectiveMinutes > 0) {
+        totalWorkMinutes += effectiveMinutes;
+        daysWorked++;
+        
+        // Only count overtime for actual work entries (not holidays/absences)
+        const summary = calculateDailySummary(entries, dateStr);
+        totalOvertimeMinutes += summary.overtimeMinutes;
+      }
+    }
+
+    return {
+      totalWorkMinutes,
+      totalOvertimeMinutes,
+      daysWorked,
+      averageDailyMinutes: daysWorked > 0 ? totalWorkMinutes / daysWorked : 0,
+    };
+  };
+
+  // Calculate monthly summary including holidays and absences
+  const calculateMonthSummary = () => {
+    const firstDay = new Date(year, month, 1);
+    const lastDay = new Date(year, month + 1, 0);
+    
+    let totalWorkMinutes = 0;
+    let totalOvertimeMinutes = 0;
+    let daysWorked = 0;
+
+    for (let d = 1; d <= lastDay.getDate(); d++) {
+      const dateStr = `${year}-${String(month + 1).padStart(2, "0")}-${String(d).padStart(2, "0")}`;
+      
+      const effectiveMinutes = getEffectiveWorkMinutes(dateStr);
+      
+      if (effectiveMinutes > 0) {
+        totalWorkMinutes += effectiveMinutes;
+        daysWorked++;
+        
+        // Only count overtime for actual work entries (not holidays/absences)
+        const summary = calculateDailySummary(entries, dateStr);
+        totalOvertimeMinutes += summary.overtimeMinutes;
+      }
+    }
+
+    return {
+      totalWorkMinutes,
+      totalOvertimeMinutes,
+      daysWorked,
+      averageDailyMinutes: daysWorked > 0 ? totalWorkMinutes / daysWorked : 0,
+    };
+  };
+
+  const weeklySummary = calculateWeekSummary();
+  const monthlySummary = calculateMonthSummary();
 
   const prevWeek = () => setCurrentDate(new Date(currentDate.setDate(currentDate.getDate() - 7)));
   const nextWeek = () => setCurrentDate(new Date(currentDate.setDate(currentDate.getDate() + 7)));
