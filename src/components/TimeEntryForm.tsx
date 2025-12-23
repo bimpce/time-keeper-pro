@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogTrigger } from "@/components/ui/dialog";
 import { Plus } from "lucide-react";
 import { EntryType } from "@/hooks/useTimeEntries";
 
@@ -68,6 +68,7 @@ export function TimeEntryForm({ onSubmit, isLoading, defaultDate }: TimeEntryFor
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle>Nov časovni vnos</DialogTitle>
+          <DialogDescription>Dodajte nov prihod ali odhod</DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-6">
           <div className="space-y-3">

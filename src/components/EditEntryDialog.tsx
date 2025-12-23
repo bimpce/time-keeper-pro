@@ -1,9 +1,9 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { TimeEntry, EntryType } from "@/hooks/useTimeEntries";
 
 interface EditEntryDialogProps {
@@ -15,23 +15,23 @@ interface EditEntryDialogProps {
 }
 
 export function EditEntryDialog({ entry, open, onOpenChange, onSubmit, isLoading }: EditEntryDialogProps) {
-  const [entryType, setEntryType] = useState<EntryType>(entry?.entry_type || "arrival");
+  const [entryType, setEntryType] = useState<EntryType>("arrival");
   const [hours, setHours] = useState("");
   const [minutes, setMinutes] = useState("");
   const [seconds, setSeconds] = useState("");
-  const [date, setDate] = useState(entry?.entry_date || "");
+  const [date, setDate] = useState("");
 
-  // Update form when entry changes
-  useState(() => {
-    if (entry) {
+  // Populate form when entry changes or dialog opens
+  useEffect(() => {
+    if (entry && open) {
       const [h, m, s] = entry.entry_time.split(":");
-      setHours(h);
-      setMinutes(m);
+      setHours(h || "");
+      setMinutes(m || "");
       setSeconds(s || "00");
       setEntryType(entry.entry_type);
       setDate(entry.entry_date);
     }
-  });
+  }, [entry, open]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -63,24 +63,12 @@ export function EditEntryDialog({ entry, open, onOpenChange, onSubmit, isLoading
     }
   };
 
-  // Reset form when dialog opens with new entry
-  const handleOpenChange = (newOpen: boolean) => {
-    if (newOpen && entry) {
-      const [h, m, s] = entry.entry_time.split(":");
-      setHours(h);
-      setMinutes(m);
-      setSeconds(s || "00");
-      setEntryType(entry.entry_type);
-      setDate(entry.entry_date);
-    }
-    onOpenChange(newOpen);
-  };
-
   return (
-    <Dialog open={open} onOpenChange={handleOpenChange}>
+    <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle>Uredi vnos</DialogTitle>
+          <DialogDescription>Spremenite podatke časovnega vnosa</DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-6">
           <div className="space-y-3">
