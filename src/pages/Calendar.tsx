@@ -1,20 +1,29 @@
 import { useState, useMemo } from "react";
 import { useTimeEntries, TimeEntry } from "@/hooks/useTimeEntries";
+import { useAbsences, Absence, AbsenceType } from "@/hooks/useAbsences";
 import { calculateDailySummary, formatMinutesToTime } from "@/lib/timeCalculations";
 import { getSlovenianHolidays, isHoliday } from "@/lib/slovenianHolidays";
 import { Timeline } from "@/components/Timeline";
 import { DaySummaryCard } from "@/components/DaySummaryCard";
 import { EditEntryDialog } from "@/components/EditEntryDialog";
 import { TimeEntryForm } from "@/components/TimeEntryForm";
+import { AddAbsenceDialog } from "@/components/AddAbsenceDialog";
 import { BottomNav } from "@/components/BottomNav";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import { ChevronLeft, ChevronRight, Trash2, Thermometer, Palmtree, Briefcase } from "lucide-react";
+
+const absenceLabels: Record<AbsenceType, { label: string; icon: React.ReactNode; colorClass: string }> = {
+  sick_leave: { label: "Bolniška", icon: <Thermometer className="h-4 w-4" />, colorClass: "bg-orange-500/20 text-orange-600 border-orange-500/30" },
+  vacation: { label: "Dopust", icon: <Palmtree className="h-4 w-4" />, colorClass: "bg-green-500/20 text-green-600 border-green-500/30" },
+  work_from_home: { label: "Delo od doma", icon: <Briefcase className="h-4 w-4" />, colorClass: "bg-blue-500/20 text-blue-600 border-blue-500/30" },
+};
 
 const CalendarPage = () => {
   const [currentMonth, setCurrentMonth] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
   const { entries, isLoading, createEntry, updateEntry, deleteEntry } = useTimeEntries();
+  const { absences, createAbsence, deleteAbsence, getAbsenceForDate } = useAbsences();
   const [editingEntry, setEditingEntry] = useState<TimeEntry | null>(null);
 
   const year = currentMonth.getFullYear();
@@ -33,14 +42,15 @@ const CalendarPage = () => {
     const dateStr = `${year}-${String(month + 1).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
     const summary = calculateDailySummary(entries, dateStr);
     const holiday = isHoliday(dateStr, holidays);
+    const absence = getAbsenceForDate(dateStr);
     
-    // Holidays count as 8 hours (480 minutes)
-    const effectiveWorkMinutes = holiday ? 480 : summary.workMinutes;
+    // Holidays and absences count as 8 hours (480 minutes)
+    const effectiveWorkMinutes = holiday || absence ? 480 : summary.workMinutes;
     
     let status = "none";
     if (effectiveWorkMinutes > 0 && effectiveWorkMinutes < 480) status = "partial";
     if (effectiveWorkMinutes >= 480) status = "full";
-    return { status, workMinutes: effectiveWorkMinutes, isHoliday: !!holiday };
+    return { status, workMinutes: effectiveWorkMinutes, isHoliday: !!holiday, absence };
   };
 
   const prevMonth = () => setCurrentMonth(new Date(year, month - 1, 1));
@@ -49,6 +59,7 @@ const CalendarPage = () => {
   const selectedSummary = selectedDate ? calculateDailySummary(entries, selectedDate) : null;
   const selectedEntries = selectedDate ? entries.filter((e) => e.entry_date === selectedDate) : [];
   const selectedHoliday = selectedDate ? isHoliday(selectedDate, holidays) : undefined;
+  const selectedAbsence = selectedDate ? getAbsenceForDate(selectedDate) : undefined;
 
   return (
     <div className="min-h-screen bg-background pb-24">
@@ -80,11 +91,18 @@ const CalendarPage = () => {
               {days.map((day, i) => {
                 if (!day) return <div key={i} />;
                 const dateStr = `${year}-${String(month + 1).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
-                const { status, workMinutes } = getDaySummaryInfo(day);
+                const { status, workMinutes, absence } = getDaySummaryInfo(day);
                 const isSelected = selectedDate === dateStr;
                 const isToday = dateStr === new Date().toISOString().split("T")[0];
                 const holiday = isHoliday(dateStr, holidays);
-                const isWeekend = (i % 7) >= 5; // Saturday (5) and Sunday (6)
+                const isWeekend = (i % 7) >= 5;
+                
+                // Get absence-specific styling
+                const getAbsenceStyle = () => {
+                  if (!absence || isSelected) return "";
+                  const info = absenceLabels[absence.absence_type];
+                  return info.colorClass;
+                };
                 
                 return (
                   <button
@@ -92,13 +110,14 @@ const CalendarPage = () => {
                     onClick={() => setSelectedDate(dateStr)}
                     className={`aspect-square rounded-lg flex flex-col items-center justify-center text-sm font-medium transition-colors p-1 relative
                       ${isSelected ? "bg-primary text-primary-foreground" : ""}
-                      ${!isSelected && status === "full" ? "bg-success/20 text-success" : ""}
-                      ${!isSelected && status === "partial" ? "bg-warning/20 text-warning" : ""}
-                      ${!isSelected && status === "none" && !holiday && !isWeekend ? "hover:bg-muted" : ""}
-                      ${!isSelected && (holiday || isWeekend) && status === "none" ? "bg-destructive/10 text-destructive hover:bg-destructive/20" : ""}
+                      ${!isSelected && !absence && status === "full" ? "bg-success/20 text-success" : ""}
+                      ${!isSelected && !absence && status === "partial" ? "bg-warning/20 text-warning" : ""}
+                      ${!isSelected && !absence && status === "none" && !holiday && !isWeekend ? "hover:bg-muted" : ""}
+                      ${!isSelected && !absence && (holiday || isWeekend) && status === "none" ? "bg-destructive/10 text-destructive hover:bg-destructive/20" : ""}
+                      ${!isSelected && absence ? getAbsenceStyle() : ""}
                       ${isToday && !isSelected ? "ring-2 ring-primary" : ""}
                     `}
-                    title={holiday?.name}
+                    title={holiday?.name || (absence ? absenceLabels[absence.absence_type].label : undefined)}
                   >
                     <span>{day}</span>
                     {workMinutes > 0 && (
@@ -106,14 +125,20 @@ const CalendarPage = () => {
                         {formatMinutesToTime(workMinutes)}
                       </span>
                     )}
-                    {holiday && !isSelected && (
-                      <span className="absolute top-0.5 right-0.5 w-1.5 h-1.5 rounded-full bg-destructive" />
+                    {(holiday || absence) && !isSelected && (
+                      <span className={`absolute top-0.5 right-0.5 w-1.5 h-1.5 rounded-full ${
+                        absence 
+                          ? absence.absence_type === "sick_leave" ? "bg-orange-500" 
+                            : absence.absence_type === "vacation" ? "bg-green-500" 
+                            : "bg-blue-500"
+                          : "bg-destructive"
+                      }`} />
                     )}
                   </button>
                 );
               })}
             </div>
-            <div className="mt-3 flex items-center gap-4 text-xs text-muted-foreground">
+            <div className="mt-3 flex flex-wrap items-center gap-3 text-xs text-muted-foreground">
               <div className="flex items-center gap-1.5">
                 <span className="w-3 h-3 rounded bg-success/20" />
                 <span>Poln dan</span>
@@ -124,11 +149,28 @@ const CalendarPage = () => {
               </div>
               <div className="flex items-center gap-1.5">
                 <span className="w-3 h-3 rounded bg-destructive/10" />
-                <span>Prosti dan</span>
+                <span>Praznik</span>
+              </div>
+              <div className="flex items-center gap-1.5">
+                <span className="w-3 h-3 rounded bg-orange-500/20" />
+                <span>Bolniška</span>
+              </div>
+              <div className="flex items-center gap-1.5">
+                <span className="w-3 h-3 rounded bg-green-500/20" />
+                <span>Dopust</span>
+              </div>
+              <div className="flex items-center gap-1.5">
+                <span className="w-3 h-3 rounded bg-blue-500/20" />
+                <span>Od doma</span>
               </div>
             </div>
           </CardContent>
         </Card>
+
+        <AddAbsenceDialog 
+          onSubmit={(data) => createAbsence.mutate(data)} 
+          isLoading={createAbsence.isPending} 
+        />
 
         {selectedDate && selectedSummary && (
           <>
@@ -136,6 +178,27 @@ const CalendarPage = () => {
               <Card className="border-destructive/30 bg-destructive/5">
                 <CardContent className="py-3 text-center">
                   <p className="text-destructive font-medium">{selectedHoliday.name}</p>
+                </CardContent>
+              </Card>
+            )}
+            {selectedAbsence && (
+              <Card className={`border ${absenceLabels[selectedAbsence.absence_type].colorClass}`}>
+                <CardContent className="py-3 flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    {absenceLabels[selectedAbsence.absence_type].icon}
+                    <span className="font-medium">{absenceLabels[selectedAbsence.absence_type].label}</span>
+                    {selectedAbsence.note && (
+                      <span className="text-sm text-muted-foreground">- {selectedAbsence.note}</span>
+                    )}
+                  </div>
+                  <Button 
+                    variant="ghost" 
+                    size="icon" 
+                    className="h-8 w-8 text-destructive hover:text-destructive"
+                    onClick={() => deleteAbsence.mutate(selectedAbsence.id)}
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
                 </CardContent>
               </Card>
             )}
