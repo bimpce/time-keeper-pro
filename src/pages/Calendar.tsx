@@ -26,12 +26,13 @@ const CalendarPage = () => {
   for (let i = 0; i < startOffset; i++) days.push(null);
   for (let i = 1; i <= lastDay.getDate(); i++) days.push(i);
 
-  const getDayStatus = (day: number) => {
+  const getDaySummaryInfo = (day: number) => {
     const dateStr = `${year}-${String(month + 1).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
     const summary = calculateDailySummary(entries, dateStr);
-    if (summary.workMinutes === 0) return "none";
-    if (summary.workMinutes >= 480) return "full";
-    return "partial";
+    let status = "none";
+    if (summary.workMinutes > 0 && summary.workMinutes < 480) status = "partial";
+    if (summary.workMinutes >= 480) status = "full";
+    return { status, workMinutes: summary.workMinutes };
   };
 
   const prevMonth = () => setCurrentMonth(new Date(year, month - 1, 1));
@@ -70,14 +71,14 @@ const CalendarPage = () => {
               {days.map((day, i) => {
                 if (!day) return <div key={i} />;
                 const dateStr = `${year}-${String(month + 1).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
-                const status = getDayStatus(day);
+                const { status, workMinutes } = getDaySummaryInfo(day);
                 const isSelected = selectedDate === dateStr;
                 const isToday = dateStr === new Date().toISOString().split("T")[0];
                 return (
                   <button
                     key={i}
                     onClick={() => setSelectedDate(dateStr)}
-                    className={`aspect-square rounded-lg flex items-center justify-center text-sm font-medium transition-colors
+                    className={`aspect-square rounded-lg flex flex-col items-center justify-center text-sm font-medium transition-colors p-1
                       ${isSelected ? "bg-primary text-primary-foreground" : ""}
                       ${!isSelected && status === "full" ? "bg-success/20 text-success" : ""}
                       ${!isSelected && status === "partial" ? "bg-warning/20 text-warning" : ""}
@@ -85,7 +86,12 @@ const CalendarPage = () => {
                       ${isToday && !isSelected ? "ring-2 ring-primary" : ""}
                     `}
                   >
-                    {day}
+                    <span>{day}</span>
+                    {workMinutes > 0 && (
+                      <span className={`text-[10px] font-mono ${isSelected ? "text-primary-foreground/80" : "opacity-70"}`}>
+                        {formatMinutesToTime(workMinutes)}
+                      </span>
+                    )}
                   </button>
                 );
               })}
