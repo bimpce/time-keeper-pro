@@ -8,8 +8,8 @@ export function BottomNav() {
   const { signOut } = useAuth();
 
   const navItems = [
-    { path: "/", icon: Home, label: "Danes" },
-    { path: "/calendar", icon: Calendar, label: "Koledar" },
+    { path: "/", icon: Calendar, label: "Koledar" },
+    { path: "/today", icon: Home, label: "Danes" },
     { path: "/reports", icon: BarChart3, label: "Poročila" },
   ];
 
