@@ -32,10 +32,15 @@ const CalendarPage = () => {
   const getDaySummaryInfo = (day: number) => {
     const dateStr = `${year}-${String(month + 1).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
     const summary = calculateDailySummary(entries, dateStr);
+    const holiday = isHoliday(dateStr, holidays);
+    
+    // Holidays count as 8 hours (480 minutes)
+    const effectiveWorkMinutes = holiday ? 480 : summary.workMinutes;
+    
     let status = "none";
-    if (summary.workMinutes > 0 && summary.workMinutes < 480) status = "partial";
-    if (summary.workMinutes >= 480) status = "full";
-    return { status, workMinutes: summary.workMinutes };
+    if (effectiveWorkMinutes > 0 && effectiveWorkMinutes < 480) status = "partial";
+    if (effectiveWorkMinutes >= 480) status = "full";
+    return { status, workMinutes: effectiveWorkMinutes, isHoliday: !!holiday };
   };
 
   const prevMonth = () => setCurrentMonth(new Date(year, month - 1, 1));
