@@ -1,6 +1,7 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useTimeEntries, TimeEntry } from "@/hooks/useTimeEntries";
 import { calculateDailySummary, formatMinutesToTime } from "@/lib/timeCalculations";
+import { getSlovenianHolidays, isHoliday } from "@/lib/slovenianHolidays";
 import { Timeline } from "@/components/Timeline";
 import { DaySummaryCard } from "@/components/DaySummaryCard";
 import { EditEntryDialog } from "@/components/EditEntryDialog";
@@ -22,6 +23,8 @@ const CalendarPage = () => {
   const lastDay = new Date(year, month + 1, 0);
   const startOffset = (firstDay.getDay() + 6) % 7;
 
+  const holidays = useMemo(() => getSlovenianHolidays(year), [year]);
+
   const days: (number | null)[] = [];
   for (let i = 0; i < startOffset; i++) days.push(null);
   for (let i = 1; i <= lastDay.getDate(); i++) days.push(i);
@@ -40,6 +43,7 @@ const CalendarPage = () => {
 
   const selectedSummary = selectedDate ? calculateDailySummary(entries, selectedDate) : null;
   const selectedEntries = selectedDate ? entries.filter((e) => e.entry_date === selectedDate) : [];
+  const selectedHoliday = selectedDate ? isHoliday(selectedDate, holidays) : undefined;
 
   return (
     <div className="min-h-screen bg-background pb-24">
@@ -74,17 +78,22 @@ const CalendarPage = () => {
                 const { status, workMinutes } = getDaySummaryInfo(day);
                 const isSelected = selectedDate === dateStr;
                 const isToday = dateStr === new Date().toISOString().split("T")[0];
+                const holiday = isHoliday(dateStr, holidays);
+                const isWeekend = (i % 7) >= 5; // Saturday (5) and Sunday (6)
+                
                 return (
                   <button
                     key={i}
                     onClick={() => setSelectedDate(dateStr)}
-                    className={`aspect-square rounded-lg flex flex-col items-center justify-center text-sm font-medium transition-colors p-1
+                    className={`aspect-square rounded-lg flex flex-col items-center justify-center text-sm font-medium transition-colors p-1 relative
                       ${isSelected ? "bg-primary text-primary-foreground" : ""}
                       ${!isSelected && status === "full" ? "bg-success/20 text-success" : ""}
                       ${!isSelected && status === "partial" ? "bg-warning/20 text-warning" : ""}
-                      ${!isSelected && status === "none" ? "hover:bg-muted" : ""}
+                      ${!isSelected && status === "none" && !holiday && !isWeekend ? "hover:bg-muted" : ""}
+                      ${!isSelected && (holiday || isWeekend) && status === "none" ? "bg-destructive/10 text-destructive hover:bg-destructive/20" : ""}
                       ${isToday && !isSelected ? "ring-2 ring-primary" : ""}
                     `}
+                    title={holiday?.name}
                   >
                     <span>{day}</span>
                     {workMinutes > 0 && (
@@ -92,15 +101,39 @@ const CalendarPage = () => {
                         {formatMinutesToTime(workMinutes)}
                       </span>
                     )}
+                    {holiday && !isSelected && (
+                      <span className="absolute top-0.5 right-0.5 w-1.5 h-1.5 rounded-full bg-destructive" />
+                    )}
                   </button>
                 );
               })}
+            </div>
+            <div className="mt-3 flex items-center gap-4 text-xs text-muted-foreground">
+              <div className="flex items-center gap-1.5">
+                <span className="w-3 h-3 rounded bg-success/20" />
+                <span>Poln dan</span>
+              </div>
+              <div className="flex items-center gap-1.5">
+                <span className="w-3 h-3 rounded bg-warning/20" />
+                <span>Delno</span>
+              </div>
+              <div className="flex items-center gap-1.5">
+                <span className="w-3 h-3 rounded bg-destructive/10" />
+                <span>Prosti dan</span>
+              </div>
             </div>
           </CardContent>
         </Card>
 
         {selectedDate && selectedSummary && (
           <>
+            {selectedHoliday && (
+              <Card className="border-destructive/30 bg-destructive/5">
+                <CardContent className="py-3 text-center">
+                  <p className="text-destructive font-medium">{selectedHoliday.name}</p>
+                </CardContent>
+              </Card>
+            )}
             <DaySummaryCard summary={selectedSummary} />
             <TimeEntryForm onSubmit={(data) => createEntry.mutate({ ...data, entry_date: selectedDate })} isLoading={createEntry.isPending} defaultDate={selectedDate} />
             <Timeline entries={selectedEntries} onEdit={setEditingEntry} onDelete={(id) => deleteEntry.mutate(id)} />
