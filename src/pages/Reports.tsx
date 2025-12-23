@@ -29,14 +29,22 @@ const Reports = () => {
 
   const holidays = useMemo(() => getSlovenianHolidays(year), [year]);
 
-  // Calculate effective work minutes for a date (includes holidays and absences)
+  // Check if a date is a weekend (Saturday = 6, Sunday = 0)
+  const isWeekendDate = (dateStr: string) => {
+    const date = new Date(dateStr + "T00:00:00");
+    const day = date.getDay();
+    return day === 0 || day === 6;
+  };
+
+  // Calculate effective work minutes for a date (includes holidays and absences, but not on weekends)
   const getEffectiveWorkMinutes = (dateStr: string) => {
     const summary = calculateDailySummary(entries, dateStr);
     const holiday = isHoliday(dateStr, holidays);
     const absence = getAbsenceForDate(dateStr);
+    const isWeekend = isWeekendDate(dateStr);
     
-    // Holidays and absences count as 8 hours
-    if (holiday || absence) {
+    // Holidays and absences count as 8 hours, but NOT on weekends
+    if (!isWeekend && (holiday || absence)) {
       return STANDARD_WORK_MINUTES;
     }
     return summary.workMinutes;

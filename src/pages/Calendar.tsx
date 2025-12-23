@@ -38,14 +38,23 @@ const CalendarPage = () => {
   for (let i = 0; i < startOffset; i++) days.push(null);
   for (let i = 1; i <= lastDay.getDate(); i++) days.push(i);
 
+  // Check if a date is a weekend (Saturday = 6, Sunday = 0)
+  const isWeekendDate = (dateStr: string) => {
+    const date = new Date(dateStr + "T00:00:00");
+    const day = date.getDay();
+    return day === 0 || day === 6;
+  };
+
   const getDaySummaryInfo = (day: number) => {
     const dateStr = `${year}-${String(month + 1).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
     const summary = calculateDailySummary(entries, dateStr);
     const holiday = isHoliday(dateStr, holidays);
     const absence = getAbsenceForDate(dateStr);
+    const isWeekend = isWeekendDate(dateStr);
     
-    // Holidays and absences count as 8 hours (480 minutes)
-    const effectiveWorkMinutes = holiday || absence ? 480 : summary.workMinutes;
+    // Holidays and absences count as 8 hours (480 minutes), but NOT on weekends
+    // Weekends are already non-working days
+    const effectiveWorkMinutes = (!isWeekend && (holiday || absence)) ? 480 : summary.workMinutes;
     
     let status = "none";
     if (effectiveWorkMinutes > 0 && effectiveWorkMinutes < 480) status = "partial";
