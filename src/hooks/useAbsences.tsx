@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { DEV_MODE, DEV_USER_ID } from "@/lib/devConfig";
 
 export type AbsenceType = "sick_leave" | "vacation" | "work_from_home";
 
@@ -22,6 +23,16 @@ export interface CreateAbsenceData {
   note?: string;
 }
 
+// Helper to get user ID (uses dev user in dev mode)
+const getUserId = async (): Promise<string> => {
+  if (DEV_MODE) {
+    return DEV_USER_ID;
+  }
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) throw new Error("Not authenticated");
+  return user.id;
+};
+
 export function useAbsences() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -29,12 +40,12 @@ export function useAbsences() {
   const absencesQuery = useQuery({
     queryKey: ["absences"],
     queryFn: async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error("Not authenticated");
+      const userId = await getUserId();
 
       const { data, error } = await supabase
         .from("absences")
         .select("*")
+        .eq("user_id", userId)
         .order("start_date", { ascending: false });
 
       if (error) throw error;
@@ -44,13 +55,12 @@ export function useAbsences() {
 
   const createAbsence = useMutation({
     mutationFn: async (absenceData: CreateAbsenceData) => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error("Not authenticated");
+      const userId = await getUserId();
 
       const { data, error } = await supabase
         .from("absences")
         .insert({
-          user_id: user.id,
+          user_id: userId,
           ...absenceData,
         })
         .select()
