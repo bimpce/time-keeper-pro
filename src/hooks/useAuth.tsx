@@ -1,35 +1,36 @@
-import { useEffect, useState } from "react";
 import { User, Session } from "@supabase/supabase-js";
-import { supabase } from "@/integrations/supabase/client";
+
+// DEV MODE: Bypass authentication for development
+const DEV_MODE = true;
+const DEV_USER_ID = "19b14a87-979d-4a60-b7ec-5994ce3bfac0";
+const DEV_USER_EMAIL = "pintar80@gmail.com";
 
 export function useAuth() {
-  const [user, setUser] = useState<User | null>(null);
-  const [session, setSession] = useState<Session | null>(null);
-  const [loading, setLoading] = useState(true);
+  // In dev mode, return a mock user immediately
+  if (DEV_MODE) {
+    const mockUser = {
+      id: DEV_USER_ID,
+      email: DEV_USER_EMAIL,
+      aud: "authenticated",
+      role: "authenticated",
+    } as User;
 
-  useEffect(() => {
-    // Get initial session
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
-      setUser(session?.user ?? null);
-      setLoading(false);
-    });
+    const mockSession = {
+      access_token: "dev-token",
+      refresh_token: "dev-refresh",
+      user: mockUser,
+    } as Session;
 
-    // Listen for auth changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (_event, session) => {
-        setSession(session);
-        setUser(session?.user ?? null);
-        setLoading(false);
-      }
-    );
+    return {
+      user: mockUser,
+      session: mockSession,
+      loading: false,
+      signOut: async () => {
+        console.log("Dev mode: signOut called");
+      },
+    };
+  }
 
-    return () => subscription.unsubscribe();
-  }, []);
-
-  const signOut = async () => {
-    await supabase.auth.signOut();
-  };
-
-  return { user, session, loading, signOut };
+  // Production code would go here
+  return { user: null, session: null, loading: false, signOut: async () => {} };
 }
