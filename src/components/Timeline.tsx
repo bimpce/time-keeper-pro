@@ -1,13 +1,82 @@
 import { TimeEntry } from "@/hooks/useTimeEntries";
-import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { ArrowDownLeft, ArrowUpRight, Pencil, Trash2 } from "lucide-react";
+import { Pencil, Trash2 } from "lucide-react";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 
 interface TimelineProps {
   entries: TimeEntry[];
   onEdit?: (entry: TimeEntry) => void;
   onDelete?: (id: string) => void;
 }
+
+interface EntryPair {
+  arrival: TimeEntry | null;
+  departure: TimeEntry | null;
+  duration: string;
+}
+
+// Format time to HH:MM:SS
+const formatTime = (time: string) => time.slice(0, 8);
+
+// Calculate duration between two times
+const calculateDuration = (arrival: string, departure: string): string => {
+  const [arrH, arrM, arrS] = arrival.split(":").map(Number);
+  const [depH, depM, depS] = departure.split(":").map(Number);
+  
+  const arrSeconds = arrH * 3600 + arrM * 60 + (arrS || 0);
+  const depSeconds = depH * 3600 + depM * 60 + (depS || 0);
+  
+  let diffSeconds = depSeconds - arrSeconds;
+  if (diffSeconds < 0) diffSeconds = 0;
+  
+  const hours = Math.floor(diffSeconds / 3600);
+  const minutes = Math.floor((diffSeconds % 3600) / 60);
+  const seconds = diffSeconds % 60;
+  
+  return `${String(hours).padStart(2, "0")}:${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
+};
+
+// Pair arrivals with departures
+const pairEntries = (entries: TimeEntry[]): EntryPair[] => {
+  const sorted = [...entries].sort((a, b) => a.entry_time.localeCompare(b.entry_time));
+  const pairs: EntryPair[] = [];
+  
+  let currentArrival: TimeEntry | null = null;
+  
+  for (const entry of sorted) {
+    if (entry.entry_type === "arrival") {
+      if (currentArrival) {
+        // Previous arrival without departure
+        pairs.push({ arrival: currentArrival, departure: null, duration: "" });
+      }
+      currentArrival = entry;
+    } else {
+      // Departure
+      if (currentArrival) {
+        const duration = calculateDuration(currentArrival.entry_time, entry.entry_time);
+        pairs.push({ arrival: currentArrival, departure: entry, duration });
+        currentArrival = null;
+      } else {
+        // Departure without arrival
+        pairs.push({ arrival: null, departure: entry, duration: "" });
+      }
+    }
+  }
+  
+  // Add remaining arrival without departure
+  if (currentArrival) {
+    pairs.push({ arrival: currentArrival, departure: null, duration: "" });
+  }
+  
+  return pairs;
+};
 
 export function Timeline({ entries, onEdit, onDelete }: TimelineProps) {
   if (entries.length === 0) {
@@ -19,61 +88,83 @@ export function Timeline({ entries, onEdit, onDelete }: TimelineProps) {
     );
   }
 
+  const pairs = pairEntries(entries);
+
   return (
-    <div className="space-y-3">
-      {entries.map((entry, index) => (
-        <Card key={entry.id} className="animate-fade-in" style={{ animationDelay: `${index * 50}ms` }}>
-          <CardContent className="py-4">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <div
-                  className={`h-10 w-10 rounded-full flex items-center justify-center ${
-                    entry.entry_type === "arrival"
-                      ? "bg-arrival/10 text-arrival"
-                      : "bg-departure/10 text-departure"
-                  }`}
-                >
-                  {entry.entry_type === "arrival" ? (
-                    <ArrowDownLeft className="h-5 w-5" />
-                  ) : (
-                    <ArrowUpRight className="h-5 w-5" />
+    <div className="rounded-lg border bg-card">
+      <Table>
+        <TableHeader>
+          <TableRow>
+            <TableHead className="font-semibold text-foreground">Prihod</TableHead>
+            <TableHead className="font-semibold text-foreground">Odhod</TableHead>
+            <TableHead className="font-semibold text-foreground">Čas</TableHead>
+            <TableHead className="w-[100px]"></TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {pairs.map((pair, index) => (
+            <TableRow key={index} className="animate-fade-in" style={{ animationDelay: `${index * 50}ms` }}>
+              <TableCell className="font-mono text-arrival font-medium">
+                {pair.arrival ? formatTime(pair.arrival.entry_time) : "—"}
+              </TableCell>
+              <TableCell className="font-mono text-departure font-medium">
+                {pair.departure ? formatTime(pair.departure.entry_time) : "—"}
+              </TableCell>
+              <TableCell className="font-mono text-muted-foreground">
+                {pair.duration || "—"}
+              </TableCell>
+              <TableCell>
+                <div className="flex gap-1 justify-end">
+                  {pair.arrival && onEdit && (
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => onEdit(pair.arrival!)}
+                      className="h-7 w-7 text-muted-foreground hover:text-foreground"
+                      title="Uredi prihod"
+                    >
+                      <Pencil className="h-3 w-3" />
+                    </Button>
+                  )}
+                  {pair.departure && onEdit && (
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => onEdit(pair.departure!)}
+                      className="h-7 w-7 text-muted-foreground hover:text-foreground"
+                      title="Uredi odhod"
+                    >
+                      <Pencil className="h-3 w-3" />
+                    </Button>
+                  )}
+                  {pair.arrival && onDelete && (
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => onDelete(pair.arrival!.id)}
+                      className="h-7 w-7 text-muted-foreground hover:text-destructive"
+                      title="Izbriši prihod"
+                    >
+                      <Trash2 className="h-3 w-3" />
+                    </Button>
+                  )}
+                  {pair.departure && onDelete && (
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => onDelete(pair.departure!.id)}
+                      className="h-7 w-7 text-muted-foreground hover:text-destructive"
+                      title="Izbriši odhod"
+                    >
+                      <Trash2 className="h-3 w-3" />
+                    </Button>
                   )}
                 </div>
-                <div>
-                  <p className="font-medium">
-                    {entry.entry_type === "arrival" ? "Prihod" : "Odhod"}
-                  </p>
-                  <p className="text-2xl font-mono font-semibold time-display">
-                    {entry.entry_time.slice(0, 8)}
-                  </p>
-                </div>
-              </div>
-              <div className="flex gap-1">
-                {onEdit && (
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => onEdit(entry)}
-                    className="text-muted-foreground hover:text-foreground"
-                  >
-                    <Pencil className="h-4 w-4" />
-                  </Button>
-                )}
-                {onDelete && (
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => onDelete(entry.id)}
-                    className="text-muted-foreground hover:text-destructive"
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
-                )}
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      ))}
+              </TableCell>
+            </TableRow>
+          ))}
+        </TableBody>
+      </Table>
     </div>
   );
 }
