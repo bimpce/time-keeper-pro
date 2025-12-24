@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { DEV_MODE, DEV_USER_ID } from "@/lib/devConfig";
 
 export type EntryType = "arrival" | "departure";
 
@@ -27,6 +28,16 @@ export interface UpdateEntryData {
   entry_date?: string;
 }
 
+// Helper to get user ID (uses dev user in dev mode)
+const getUserId = async (): Promise<string> => {
+  if (DEV_MODE) {
+    return DEV_USER_ID;
+  }
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) throw new Error("Not authenticated");
+  return user.id;
+};
+
 export function useTimeEntries(date?: string) {
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -34,9 +45,12 @@ export function useTimeEntries(date?: string) {
   const entriesQuery = useQuery({
     queryKey: ["time-entries", date],
     queryFn: async () => {
+      const userId = await getUserId();
+      
       let query = supabase
         .from("time_entries")
         .select("*")
+        .eq("user_id", userId)
         .order("entry_date", { ascending: false })
         .order("entry_time", { ascending: true });
 
@@ -52,13 +66,12 @@ export function useTimeEntries(date?: string) {
 
   const createEntry = useMutation({
     mutationFn: async (data: CreateEntryData) => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error("Not authenticated");
+      const userId = await getUserId();
 
       const { data: entry, error } = await supabase
         .from("time_entries")
         .insert({
-          user_id: user.id,
+          user_id: userId,
           entry_date: data.entry_date,
           entry_type: data.entry_type,
           entry_time: data.entry_time,
