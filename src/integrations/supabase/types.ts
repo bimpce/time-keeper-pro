@@ -82,7 +82,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      is_dev_user: { Args: { check_user_id: string }; Returns: boolean }
+      [_ in never]: never
     }
     Enums: {
       absence_type: "sick_leave" | "vacation" | "work_from_home"
