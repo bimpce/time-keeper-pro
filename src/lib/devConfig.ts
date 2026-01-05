@@ -1,4 +1,3 @@
 // DEV MODE: Only enabled in development environment via Vite
+// Note: This is for client-side development features only, not for authentication bypass
 export const DEV_MODE = import.meta.env.DEV;
-export const DEV_USER_ID = "19b14a87-979d-4a60-b7ec-5994ce3bfac0";
-export const DEV_USER_EMAIL = "pintar80@gmail.com";
