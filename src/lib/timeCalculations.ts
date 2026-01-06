@@ -131,16 +131,28 @@ export function calculateDailySummary(
     }
   }
 
-  // Add default 30min lunch break if it's a work day without absence/holiday
-  // and there are entries but no recorded breaks
+  // Check if it's a work day (has entries, not absence/holiday/weekend)
   const isWorkDay = dayEntries.length > 0 && !hasAbsence && !isHoliday && !isWeekend;
-  if (isWorkDay && breakSeconds === 0) {
-    breakSeconds = DEFAULT_LUNCH_BREAK_SECONDS;
+  
+  // Track actual break seconds taken
+  const actualBreakSeconds = breakSeconds;
+  
+  // Set entitled break to 30 min for work days
+  const entitledBreakSeconds = isWorkDay ? DEFAULT_LUNCH_BREAK_SECONDS : 0;
+  
+  // Display break is always the entitled amount for work days (or actual if higher)
+  if (isWorkDay) {
+    breakSeconds = Math.max(entitledBreakSeconds, actualBreakSeconds);
   }
 
-  // Calculate overtime (work > 8 hours)
+  // Calculate effective work: add unused break time to work
+  // If no break taken, full 30 min is added; if partial break, difference is added
+  const unusedBreakSeconds = Math.max(0, entitledBreakSeconds - actualBreakSeconds);
+  const effectiveWorkSeconds = workSeconds + unusedBreakSeconds;
+
+  // Calculate overtime based on effective work (work > 8 hours)
   const standardWorkSeconds = STANDARD_WORK_HOURS * 3600;
-  const overtimeSeconds = Math.max(0, workSeconds - standardWorkSeconds);
+  const overtimeSeconds = Math.max(0, effectiveWorkSeconds - standardWorkSeconds);
 
   // Check if day is complete (ends with departure)
   const isComplete = dayEntries.length > 0 && !isAtWork;
