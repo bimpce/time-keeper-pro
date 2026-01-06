@@ -47,7 +47,7 @@ const CalendarPage = () => {
 
   const getDaySummaryInfo = (day: number) => {
     const dateStr = `${year}-${String(month + 1).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
-    const summary = calculateDailySummary(entries, dateStr);
+    const summary = calculateDailySummary(entries, dateStr, { absences, holidays });
     const holiday = isHoliday(dateStr, holidays);
     const absence = getAbsenceForDate(dateStr);
     const isWeekend = isWeekendDate(dateStr);
@@ -69,7 +69,7 @@ const CalendarPage = () => {
   const prevMonth = () => setCurrentMonth(new Date(year, month - 1, 1));
   const nextMonth = () => setCurrentMonth(new Date(year, month + 1, 1));
 
-  const selectedSummary = selectedDate ? calculateDailySummary(entries, selectedDate) : null;
+  const selectedSummary = selectedDate ? calculateDailySummary(entries, selectedDate, { absences, holidays }) : null;
   const selectedEntries = selectedDate ? entries.filter((e) => e.entry_date === selectedDate) : [];
   const selectedHoliday = selectedDate ? isHoliday(selectedDate, holidays) : undefined;
   const selectedAbsence = selectedDate ? getAbsenceForDate(selectedDate) : undefined;
