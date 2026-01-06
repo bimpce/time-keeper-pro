@@ -36,16 +36,16 @@ const Reports = () => {
     return day === 0 || day === 6;
   };
 
-  // Calculate effective work seconds for a date
+  // Calculate effective work seconds for a date (using gross time)
   const getEffectiveWorkSeconds = (dateStr: string) => {
     const summary = calculateDailySummary(entries, dateStr, { absences, holidays });
     const holiday = isHoliday(dateStr, holidays);
     const absence = getAbsenceForDate(dateStr);
     const isWeekend = isWeekendDate(dateStr);
     
-    // If there's actual work entered, use that (even on holidays/weekends)
-    if (summary.workSeconds > 0) {
-      return summary.workSeconds;
+    // If there's actual work entered, use gross time (first arrival to last departure)
+    if (summary.grossSeconds > 0) {
+      return summary.grossSeconds;
     }
     
     // Holidays and absences on weekdays count as 8 hours
@@ -82,8 +82,8 @@ const Reports = () => {
         daysWorked++;
         
         // Work on weekends/holidays counts entirely as overtime
-        if (isOvertimeDay(dateStr) && summary.workSeconds > 0) {
-          totalOvertimeSeconds += summary.workSeconds;
+        if (isOvertimeDay(dateStr) && summary.grossSeconds > 0) {
+          totalOvertimeSeconds += summary.grossSeconds;
         } else {
           // Regular day overtime (work > 8 hours)
           totalOvertimeSeconds += summary.overtimeSeconds;
@@ -118,8 +118,8 @@ const Reports = () => {
         daysWorked++;
         
         // Work on weekends/holidays counts entirely as overtime
-        if (isOvertimeDay(dateStr) && summary.workSeconds > 0) {
-          totalOvertimeSeconds += summary.workSeconds;
+        if (isOvertimeDay(dateStr) && summary.grossSeconds > 0) {
+          totalOvertimeSeconds += summary.grossSeconds;
         } else {
           // Regular day overtime (work > 8 hours)
           totalOvertimeSeconds += summary.overtimeSeconds;
