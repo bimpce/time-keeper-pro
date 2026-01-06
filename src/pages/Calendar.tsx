@@ -238,12 +238,12 @@ const CalendarPage = () => {
                   entry_date: selectedDate,
                 });
               }}
+              onDelete={(id) => deleteEntry.mutate(id)}
             />
           </>
         )}
       </main>
 
-      <EditEntryDialog entry={editingEntry} open={!!editingEntry} onOpenChange={(open) => !open && setEditingEntry(null)} onSubmit={(data) => updateEntry.mutate(data)} isLoading={updateEntry.isPending} />
       <BottomNav />
     </div>
   );
