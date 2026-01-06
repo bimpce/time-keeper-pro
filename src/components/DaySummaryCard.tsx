@@ -1,4 +1,4 @@
-import { DailySummary, formatMinutesToTimeWithSeconds } from "@/lib/timeCalculations";
+import { DailySummary, formatSecondsToTime } from "@/lib/timeCalculations";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Clock, Coffee, TrendingUp, CheckCircle, AlertCircle } from "lucide-react";
 
@@ -7,7 +7,7 @@ interface DaySummaryCardProps {
 }
 
 export function DaySummaryCard({ summary }: DaySummaryCardProps) {
-  const { workMinutes, breakMinutes, overtimeMinutes, isComplete } = summary;
+  const { workSeconds, breakSeconds, overtimeSeconds, isComplete } = summary;
 
   return (
     <Card>
@@ -37,24 +37,24 @@ export function DaySummaryCard({ summary }: DaySummaryCardProps) {
             <div className="h-12 w-12 mx-auto rounded-xl bg-primary/10 flex items-center justify-center mb-2">
               <Clock className="h-6 w-6 text-primary" />
             </div>
-            <p className="text-2xl font-mono font-bold time-display">{formatMinutesToTimeWithSeconds(workMinutes)}</p>
+            <p className="text-2xl font-mono font-bold time-display">{formatSecondsToTime(workSeconds)}</p>
             <p className="text-xs text-muted-foreground">Delo</p>
           </div>
           <div className="text-center">
             <div className="h-12 w-12 mx-auto rounded-xl bg-muted flex items-center justify-center mb-2">
               <Coffee className="h-6 w-6 text-muted-foreground" />
             </div>
-            <p className="text-2xl font-mono font-bold time-display">{formatMinutesToTimeWithSeconds(breakMinutes)}</p>
+            <p className="text-2xl font-mono font-bold time-display">{formatSecondsToTime(breakSeconds)}</p>
             <p className="text-xs text-muted-foreground">Odmor</p>
           </div>
           <div className="text-center">
             <div className={`h-12 w-12 mx-auto rounded-xl flex items-center justify-center mb-2 ${
-              overtimeMinutes > 0 ? "bg-warning/10" : "bg-muted"
+              overtimeSeconds > 0 ? "bg-warning/10" : "bg-muted"
             }`}>
-              <TrendingUp className={`h-6 w-6 ${overtimeMinutes > 0 ? "text-warning" : "text-muted-foreground"}`} />
+              <TrendingUp className={`h-6 w-6 ${overtimeSeconds > 0 ? "text-warning" : "text-muted-foreground"}`} />
             </div>
-            <p className={`text-2xl font-mono font-bold time-display ${overtimeMinutes > 0 ? "text-warning" : ""}`}>
-              {overtimeMinutes > 0 ? "+" : ""}{formatMinutesToTimeWithSeconds(overtimeMinutes)}
+            <p className={`text-2xl font-mono font-bold time-display ${overtimeSeconds > 0 ? "text-warning" : ""}`}>
+              {overtimeSeconds > 0 ? "+" : ""}{formatSecondsToTime(overtimeSeconds)}
             </p>
             <p className="text-xs text-muted-foreground">Nadure</p>
           </div>
