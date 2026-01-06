@@ -71,6 +71,13 @@ const Home = () => {
                     });
                   }
                 }}
+                onAdd={(entryType, time) => {
+                  createEntry.mutate({
+                    entry_type: entryType,
+                    entry_time: time,
+                    entry_date: today,
+                  });
+                }}
               />
             </div>
           </>
