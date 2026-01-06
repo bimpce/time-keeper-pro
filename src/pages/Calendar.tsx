@@ -218,7 +218,20 @@ const CalendarPage = () => {
             )}
             <DaySummaryCard summary={selectedSummary} />
             <TimeEntryForm onSubmit={(data) => createEntry.mutate({ ...data, entry_date: selectedDate })} isLoading={createEntry.isPending} defaultDate={selectedDate} />
-            <Timeline entries={selectedEntries} onEdit={setEditingEntry} onDelete={(id) => deleteEntry.mutate(id)} />
+            <Timeline 
+              entries={selectedEntries} 
+              onUpdate={(id, newTime) => {
+                const entry = selectedEntries.find((e) => e.id === id);
+                if (entry) {
+                  updateEntry.mutate({
+                    id,
+                    entry_type: entry.entry_type as "arrival" | "departure",
+                    entry_time: newTime,
+                    entry_date: entry.entry_date,
+                  });
+                }
+              }}
+            />
           </>
         )}
       </main>
