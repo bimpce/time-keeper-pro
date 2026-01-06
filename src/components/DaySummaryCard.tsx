@@ -1,4 +1,4 @@
-import { DailySummary, formatMinutesToTime } from "@/lib/timeCalculations";
+import { DailySummary, formatMinutesToTimeWithSeconds } from "@/lib/timeCalculations";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Clock, Coffee, TrendingUp, CheckCircle, AlertCircle } from "lucide-react";
 
@@ -37,14 +37,14 @@ export function DaySummaryCard({ summary }: DaySummaryCardProps) {
             <div className="h-12 w-12 mx-auto rounded-xl bg-primary/10 flex items-center justify-center mb-2">
               <Clock className="h-6 w-6 text-primary" />
             </div>
-            <p className="text-2xl font-mono font-bold time-display">{formatMinutesToTime(workMinutes)}</p>
+            <p className="text-2xl font-mono font-bold time-display">{formatMinutesToTimeWithSeconds(workMinutes)}</p>
             <p className="text-xs text-muted-foreground">Delo</p>
           </div>
           <div className="text-center">
             <div className="h-12 w-12 mx-auto rounded-xl bg-muted flex items-center justify-center mb-2">
               <Coffee className="h-6 w-6 text-muted-foreground" />
             </div>
-            <p className="text-2xl font-mono font-bold time-display">{formatMinutesToTime(breakMinutes)}</p>
+            <p className="text-2xl font-mono font-bold time-display">{formatMinutesToTimeWithSeconds(breakMinutes)}</p>
             <p className="text-xs text-muted-foreground">Odmor</p>
           </div>
           <div className="text-center">
@@ -54,7 +54,7 @@ export function DaySummaryCard({ summary }: DaySummaryCardProps) {
               <TrendingUp className={`h-6 w-6 ${overtimeMinutes > 0 ? "text-warning" : "text-muted-foreground"}`} />
             </div>
             <p className={`text-2xl font-mono font-bold time-display ${overtimeMinutes > 0 ? "text-warning" : ""}`}>
-              {overtimeMinutes > 0 ? "+" : ""}{formatMinutesToTime(overtimeMinutes)}
+              {overtimeMinutes > 0 ? "+" : ""}{formatMinutesToTimeWithSeconds(overtimeMinutes)}
             </p>
             <p className="text-xs text-muted-foreground">Nadure</p>
           </div>

@@ -50,6 +50,13 @@ export function formatMinutesToTime(minutes: number): string {
   return `${sign}${hours.toString().padStart(2, "0")}:${mins.toString().padStart(2, "0")}`;
 }
 
+export function formatMinutesToTimeWithSeconds(minutes: number): string {
+  const hours = Math.floor(Math.abs(minutes) / 60);
+  const mins = Math.abs(minutes) % 60;
+  const sign = minutes < 0 ? "-" : "";
+  return `${sign}${hours.toString().padStart(2, "0")}:${mins.toString().padStart(2, "0")}:00`;
+}
+
 export function formatMinutesToHoursDecimal(minutes: number): string {
   return (minutes / 60).toFixed(2);
 }
