@@ -1,13 +1,13 @@
 import { DailySummary, formatSecondsToTime } from "@/lib/timeCalculations";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Clock, Coffee, TrendingUp, CheckCircle, AlertCircle } from "lucide-react";
+import { Clock, Coffee, TrendingUp, CheckCircle, AlertCircle, Timer } from "lucide-react";
 
 interface DaySummaryCardProps {
   summary: DailySummary;
 }
 
 export function DaySummaryCard({ summary }: DaySummaryCardProps) {
-  const { workSeconds, breakSeconds, actualBreakSeconds, unusedBreakSeconds, overtimeSeconds, isComplete } = summary;
+  const { workSeconds, grossSeconds, breakSeconds, actualBreakSeconds, unusedBreakSeconds, overtimeSeconds, isComplete } = summary;
 
   return (
     <Card>
@@ -32,14 +32,24 @@ export function DaySummaryCard({ summary }: DaySummaryCardProps) {
         </CardTitle>
       </CardHeader>
       <CardContent>
-        <div className="grid grid-cols-3 gap-4 mb-4">
+        <div className="grid grid-cols-2 gap-4 mb-4">
           <div className="text-center">
             <div className="h-12 w-12 mx-auto rounded-xl bg-primary/10 flex items-center justify-center mb-2">
               <Clock className="h-6 w-6 text-primary" />
             </div>
             <p className="text-2xl font-mono font-bold time-display">{formatSecondsToTime(workSeconds)}</p>
-            <p className="text-xs text-muted-foreground">Delo</p>
+            <p className="text-xs text-muted-foreground">Neto delo</p>
           </div>
+          <div className="text-center">
+            <div className="h-12 w-12 mx-auto rounded-xl bg-muted flex items-center justify-center mb-2">
+              <Timer className="h-6 w-6 text-muted-foreground" />
+            </div>
+            <p className="text-2xl font-mono font-bold time-display">{formatSecondsToTime(grossSeconds)}</p>
+            <p className="text-xs text-muted-foreground">Bruto čas</p>
+          </div>
+        </div>
+        
+        <div className="grid grid-cols-2 gap-4 mb-4">
           <div className="text-center">
             <div className="h-12 w-12 mx-auto rounded-xl bg-muted flex items-center justify-center mb-2">
               <Coffee className="h-6 w-6 text-muted-foreground" />
