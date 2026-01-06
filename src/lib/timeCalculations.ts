@@ -10,6 +10,8 @@ export interface DailySummary {
   date: string;
   workSeconds: number;
   breakSeconds: number;
+  actualBreakSeconds: number;
+  unusedBreakSeconds: number;
   overtimeSeconds: number;
   entries: TimeEntry[];
   isComplete: boolean;
@@ -140,6 +142,9 @@ export function calculateDailySummary(
   // Set entitled break to 30 min for work days
   const entitledBreakSeconds = isWorkDay ? DEFAULT_LUNCH_BREAK_SECONDS : 0;
   
+  // Calculate unused break (entitled - actual, min 0)
+  const unusedBreakSeconds = Math.max(0, entitledBreakSeconds - actualBreakSeconds);
+  
   // Display break is always the entitled amount for work days (or actual if higher)
   if (isWorkDay) {
     breakSeconds = Math.max(entitledBreakSeconds, actualBreakSeconds);
@@ -159,6 +164,8 @@ export function calculateDailySummary(
     date,
     workSeconds,
     breakSeconds,
+    actualBreakSeconds,
+    unusedBreakSeconds,
     overtimeSeconds,
     entries: dayEntries,
     isComplete,

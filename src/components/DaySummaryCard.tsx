@@ -7,7 +7,7 @@ interface DaySummaryCardProps {
 }
 
 export function DaySummaryCard({ summary }: DaySummaryCardProps) {
-  const { workSeconds, breakSeconds, overtimeSeconds, isComplete } = summary;
+  const { workSeconds, breakSeconds, actualBreakSeconds, unusedBreakSeconds, overtimeSeconds, isComplete } = summary;
 
   return (
     <Card>
@@ -32,7 +32,7 @@ export function DaySummaryCard({ summary }: DaySummaryCardProps) {
         </CardTitle>
       </CardHeader>
       <CardContent>
-        <div className="grid grid-cols-3 gap-4">
+        <div className="grid grid-cols-3 gap-4 mb-4">
           <div className="text-center">
             <div className="h-12 w-12 mx-auto rounded-xl bg-primary/10 flex items-center justify-center mb-2">
               <Clock className="h-6 w-6 text-primary" />
@@ -59,6 +59,30 @@ export function DaySummaryCard({ summary }: DaySummaryCardProps) {
             <p className="text-xs text-muted-foreground">Nadure</p>
           </div>
         </div>
+        
+        {/* Break usage details */}
+        {summary.entries.length > 0 && (
+          <div className="border-t pt-3">
+            <div className="flex items-center justify-between text-sm">
+              <div className="flex items-center gap-2">
+                <Coffee className="h-4 w-4 text-muted-foreground" />
+                <span className="text-muted-foreground">Poraba odmora:</span>
+              </div>
+              <div className="flex gap-4 font-mono text-sm">
+                <span>
+                  <span className="text-muted-foreground mr-1">Dejanski:</span>
+                  <span className="font-medium">{formatSecondsToTime(actualBreakSeconds)}</span>
+                </span>
+                <span>
+                  <span className="text-muted-foreground mr-1">Preostalo:</span>
+                  <span className={`font-medium ${unusedBreakSeconds > 0 ? "text-success" : ""}`}>
+                    {formatSecondsToTime(unusedBreakSeconds)}
+                  </span>
+                </span>
+              </div>
+            </div>
+          </div>
+        )}
       </CardContent>
     </Card>
   );
