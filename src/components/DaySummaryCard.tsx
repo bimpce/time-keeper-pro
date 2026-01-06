@@ -77,8 +77,10 @@ export function DaySummaryCard({ summary }: DaySummaryCardProps) {
             <div className="h-12 w-12 mx-auto rounded-xl bg-muted flex items-center justify-center mb-2">
               <Coffee className="h-6 w-6 text-muted-foreground" />
             </div>
-            <p className="text-2xl font-mono font-bold time-display">{formatSecondsToTime(breakSeconds)}</p>
-            <p className="text-xs text-muted-foreground">Odmor</p>
+            <p className="text-lg font-mono font-bold time-display">
+              {formatSecondsToTime(actualBreakSeconds)} / {formatSecondsToTime(unusedBreakSeconds)}
+            </p>
+            <p className="text-xs text-muted-foreground">Poraba odmora: Dejanski / Preostalo</p>
           </div>
           <div className="text-center">
             <div className={`h-12 w-12 mx-auto rounded-xl flex items-center justify-center mb-2 ${
@@ -92,30 +94,6 @@ export function DaySummaryCard({ summary }: DaySummaryCardProps) {
             <p className="text-xs text-muted-foreground">Nadure</p>
           </div>
         </div>
-        
-        {/* Break usage details */}
-        {summary.entries.length > 0 && (
-          <div className="border-t pt-3">
-            <div className="flex items-center justify-between text-sm">
-              <div className="flex items-center gap-2">
-                <Coffee className="h-4 w-4 text-muted-foreground" />
-                <span className="text-muted-foreground">Poraba odmora:</span>
-              </div>
-              <div className="flex gap-4 font-mono text-sm">
-                <span>
-                  <span className="text-muted-foreground mr-1">Dejanski:</span>
-                  <span className="font-medium">{formatSecondsToTime(actualBreakSeconds)}</span>
-                </span>
-                <span>
-                  <span className="text-muted-foreground mr-1">Preostalo:</span>
-                  <span className={`font-medium ${unusedBreakSeconds > 0 ? "text-success" : ""}`}>
-                    {formatSecondsToTime(unusedBreakSeconds)}
-                  </span>
-                </span>
-              </div>
-            </div>
-          </div>
-        )}
       </CardContent>
     </Card>
   );
