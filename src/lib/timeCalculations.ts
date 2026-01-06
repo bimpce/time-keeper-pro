@@ -145,14 +145,12 @@ export function calculateDailySummary(
     breakSeconds = Math.max(entitledBreakSeconds, actualBreakSeconds);
   }
 
-  // Calculate effective work: add unused break time to work
-  // If no break taken, full 30 min is added; if partial break, difference is added
-  const unusedBreakSeconds = Math.max(0, entitledBreakSeconds - actualBreakSeconds);
-  const effectiveWorkSeconds = workSeconds + unusedBreakSeconds;
-
-  // Calculate overtime based on effective work (work > 8 hours)
+  // Calculate overtime based on actual work time compared to 8 hours standard
+  // The unused break is NOT added for overtime calculation
+  // Logic: gross span (08:07:03) + unused break (3:20) = 08:10:23 vs 8:30 (8h work + 30min break)
+  // This is equivalent to: work time (07:40:23) vs 8:00 standard
   const standardWorkSeconds = STANDARD_WORK_HOURS * 3600;
-  const overtimeSeconds = Math.max(0, effectiveWorkSeconds - standardWorkSeconds);
+  const overtimeSeconds = Math.max(0, workSeconds - standardWorkSeconds);
 
   // Check if day is complete (ends with departure)
   const isComplete = dayEntries.length > 0 && !isAtWork;
