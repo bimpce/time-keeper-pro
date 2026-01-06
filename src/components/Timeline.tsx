@@ -1,13 +1,15 @@
 import { TimeEntry } from "@/hooks/useTimeEntries";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { Button } from "@/components/ui/button";
+import { Trash2 } from "lucide-react";
 import { useState, useRef, useEffect } from "react";
 
 interface TimelineProps {
   entries: TimeEntry[];
   onUpdate?: (id: string, newTime: string) => void;
   onAdd?: (entryType: "arrival" | "departure", time: string) => void;
-  date?: string;
+  onDelete?: (id: string) => void;
 }
 
 // Format time to HH:MM:SS
@@ -47,9 +49,10 @@ interface EditableCellProps {
   entryType: "arrival" | "departure";
   onUpdate?: (id: string, newTime: string) => void;
   onAdd?: (entryType: "arrival" | "departure", time: string) => void;
+  onDelete?: (id: string) => void;
 }
 
-function EditableCell({ entry, entryType, onUpdate, onAdd }: EditableCellProps) {
+function EditableCell({ entry, entryType, onUpdate, onAdd, onDelete }: EditableCellProps) {
   const [isEditing, setIsEditing] = useState(false);
   const [value, setValue] = useState(entry ? formatTime(entry.entry_time) : "");
   const inputRef = useRef<HTMLInputElement>(null);
@@ -71,14 +74,12 @@ function EditableCell({ entry, entryType, onUpdate, onAdd }: EditableCellProps) 
     const normalized = normalizeTime(value);
     
     if (entry && onUpdate) {
-      // Editing existing entry
       if (normalized && normalized !== formatTime(entry.entry_time)) {
         onUpdate(entry.id, normalized);
       } else {
         setValue(formatTime(entry.entry_time));
       }
     } else if (!entry && onAdd && normalized) {
-      // Adding new entry
       onAdd(entryType, normalized);
       setValue("");
     } else {
@@ -102,28 +103,48 @@ function EditableCell({ entry, entryType, onUpdate, onAdd }: EditableCellProps) 
     }
   };
 
+  const handleDelete = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (entry && onDelete) {
+      onDelete(entry.id);
+    }
+  };
+
   return (
-    <div className="px-1 py-0.5 border-b border-border last:border-b-0">
-      <Input
-        ref={inputRef}
-        readOnly={!isEditing}
-        value={value}
-        onChange={(e) => setValue(e.target.value)}
-        onClick={handleClick}
-        onBlur={handleBlur}
-        onKeyDown={handleKeyDown}
-        placeholder={isEditing ? "HH:MM:SS" : ""}
-        className={`h-8 font-mono text-sm border-border bg-background ${
-          isEditing 
-            ? "ring-2 ring-primary" 
-            : "cursor-pointer hover:bg-accent/50"
-        } ${entry ? "text-foreground" : isEditing ? "text-foreground" : "text-muted-foreground/30"}`}
-      />
+    <div className="px-1 py-0.5 border-b border-border last:border-b-0 group relative">
+      <div className="flex items-center gap-1">
+        <Input
+          ref={inputRef}
+          readOnly={!isEditing}
+          value={value}
+          onChange={(e) => setValue(e.target.value)}
+          onClick={handleClick}
+          onBlur={handleBlur}
+          onKeyDown={handleKeyDown}
+          placeholder={isEditing ? "HH:MM:SS" : ""}
+          className={`h-8 font-mono text-sm border-border bg-background flex-1 ${
+            isEditing 
+              ? "ring-2 ring-primary" 
+              : "cursor-pointer hover:bg-accent/50"
+          } ${entry ? "text-foreground" : isEditing ? "text-foreground" : "text-muted-foreground/30"}`}
+        />
+        {entry && onDelete && (
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={handleDelete}
+            className="h-7 w-7 opacity-0 group-hover:opacity-100 transition-opacity text-muted-foreground hover:text-destructive shrink-0"
+            title="Izbriši"
+          >
+            <Trash2 className="h-3.5 w-3.5" />
+          </Button>
+        )}
+      </div>
     </div>
   );
 }
 
-export function Timeline({ entries, onUpdate, onAdd }: TimelineProps) {
+export function Timeline({ entries, onUpdate, onAdd, onDelete }: TimelineProps) {
   const { arrivals, departures, maxRows } = separateEntries(entries);
 
   return (
@@ -147,6 +168,7 @@ export function Timeline({ entries, onUpdate, onAdd }: TimelineProps) {
                 entryType="arrival"
                 onUpdate={onUpdate}
                 onAdd={onAdd}
+                onDelete={onDelete}
               />
             ))}
           </div>
@@ -159,6 +181,7 @@ export function Timeline({ entries, onUpdate, onAdd }: TimelineProps) {
                 entryType="departure"
                 onUpdate={onUpdate}
                 onAdd={onAdd}
+                onDelete={onDelete}
               />
             ))}
           </div>

@@ -78,19 +78,12 @@ const Home = () => {
                     entry_date: today,
                   });
                 }}
+                onDelete={(id) => deleteEntry.mutate(id)}
               />
             </div>
           </>
         )}
       </main>
-
-      <EditEntryDialog
-        entry={editingEntry}
-        open={!!editingEntry}
-        onOpenChange={(open) => !open && setEditingEntry(null)}
-        onSubmit={(data) => updateEntry.mutate(data)}
-        isLoading={updateEntry.isPending}
-      />
 
       <BottomNav />
     </div>
