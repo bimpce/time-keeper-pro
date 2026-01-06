@@ -60,8 +60,17 @@ const Home = () => {
               <h2 className="text-lg font-semibold mb-3">Današnji vnosi</h2>
               <Timeline
                 entries={todayEntries}
-                onEdit={setEditingEntry}
-                onDelete={(id) => deleteEntry.mutate(id)}
+                onUpdate={(id, newTime) => {
+                  const entry = todayEntries.find((e) => e.id === id);
+                  if (entry) {
+                    updateEntry.mutate({
+                      id,
+                      entry_type: entry.entry_type as "arrival" | "departure",
+                      entry_time: newTime,
+                      entry_date: entry.entry_date,
+                    });
+                  }
+                }}
               />
             </div>
           </>
