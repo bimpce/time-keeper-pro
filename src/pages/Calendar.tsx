@@ -52,11 +52,12 @@ const CalendarPage = () => {
     const absence = getAbsenceForDate(dateStr);
     const isWeekend = isWeekendDate(dateStr);
     
-    let effectiveWorkSeconds = summary.workSeconds;
+    // Use gross seconds for display (time from first arrival to last departure)
+    let effectiveWorkSeconds = summary.grossSeconds;
     
     // If there's actual work entered, use that (even on holidays/weekends)
     // Otherwise, holidays and absences on weekdays count as 8 hours
-    if (summary.workSeconds === 0 && !isWeekend && (holiday || absence)) {
+    if (summary.grossSeconds === 0 && !isWeekend && (holiday || absence)) {
       effectiveWorkSeconds = 28800; // 8 hours in seconds
     }
     
