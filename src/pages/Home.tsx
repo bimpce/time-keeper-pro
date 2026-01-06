@@ -1,6 +1,8 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useTimeEntries, TimeEntry } from "@/hooks/useTimeEntries";
+import { useAbsences } from "@/hooks/useAbsences";
 import { calculateDailySummary } from "@/lib/timeCalculations";
+import { getSlovenianHolidays } from "@/lib/slovenianHolidays";
 import { TimeEntryForm } from "@/components/TimeEntryForm";
 import { Timeline } from "@/components/Timeline";
 import { DaySummaryCard } from "@/components/DaySummaryCard";
@@ -11,11 +13,15 @@ import { Clock } from "lucide-react";
 
 const Home = () => {
   const today = new Date().toISOString().split("T")[0];
+  const year = new Date().getFullYear();
   const { entries, isLoading, createEntry, updateEntry, deleteEntry } = useTimeEntries(today);
+  const { absences } = useAbsences();
   const [editingEntry, setEditingEntry] = useState<TimeEntry | null>(null);
 
+  const holidays = useMemo(() => getSlovenianHolidays(year), [year]);
+
   const todayEntries = entries.filter((e) => e.entry_date === today);
-  const summary = calculateDailySummary(entries, today);
+  const summary = calculateDailySummary(entries, today, { absences, holidays });
 
   const formattedDate = new Date().toLocaleDateString("sl-SI", {
     weekday: "long",

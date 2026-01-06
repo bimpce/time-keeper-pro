@@ -1,8 +1,11 @@
 import { TimeEntry } from "@/hooks/useTimeEntries";
+import { Absence } from "@/hooks/useAbsences";
+import { Holiday } from "@/lib/slovenianHolidays";
 
 const STANDARD_WORK_HOURS = 8;
 const STANDARD_BREAK_MINUTES = 30;
 const BREAK_THRESHOLD_MINUTES = 3;
+const DEFAULT_LUNCH_BREAK_MINUTES = 30;
 
 export interface DailySummary {
   date: string;
@@ -51,10 +54,33 @@ export function formatMinutesToHoursDecimal(minutes: number): string {
   return (minutes / 60).toFixed(2);
 }
 
-export function calculateDailySummary(entries: TimeEntry[], date: string): DailySummary {
+export interface DailySummaryOptions {
+  absences?: Absence[];
+  holidays?: Holiday[];
+}
+
+export function calculateDailySummary(
+  entries: TimeEntry[],
+  date: string,
+  options: DailySummaryOptions = {}
+): DailySummary {
+  const { absences = [], holidays = [] } = options;
+  
   const dayEntries = entries
     .filter((e) => e.entry_date === date)
     .sort((a, b) => a.entry_time.localeCompare(b.entry_time));
+
+  // Check if this day has an absence (vacation, sick leave, work from home)
+  const hasAbsence = absences.some(
+    (absence) => date >= absence.start_date && date <= absence.end_date
+  );
+  
+  // Check if this day is a holiday
+  const isHoliday = holidays.some((holiday) => holiday.date === date);
+  
+  // Check if this is a weekend
+  const dayOfWeek = new Date(date).getDay();
+  const isWeekend = dayOfWeek === 0 || dayOfWeek === 6;
 
   let workMinutes = 0;
   let breakMinutes = 0;
@@ -85,6 +111,13 @@ export function calculateDailySummary(entries: TimeEntry[], date: string): Daily
     }
   }
 
+  // Add default 30min lunch break if it's a work day without absence/holiday
+  // and there are entries but no recorded breaks
+  const isWorkDay = dayEntries.length > 0 && !hasAbsence && !isHoliday && !isWeekend;
+  if (isWorkDay && breakMinutes === 0) {
+    breakMinutes = DEFAULT_LUNCH_BREAK_MINUTES;
+  }
+
   // Calculate overtime (work > 8 hours)
   const standardWorkMinutes = STANDARD_WORK_HOURS * 60;
   const overtimeMinutes = Math.max(0, workMinutes - standardWorkMinutes);
@@ -102,7 +135,11 @@ export function calculateDailySummary(entries: TimeEntry[], date: string): Daily
   };
 }
 
-export function calculateWeeklySummary(entries: TimeEntry[], weekStart: Date): WeeklySummary {
+export function calculateWeeklySummary(
+  entries: TimeEntry[],
+  weekStart: Date,
+  options: DailySummaryOptions = {}
+): WeeklySummary {
   const days: DailySummary[] = [];
   const weekEnd = new Date(weekStart);
   weekEnd.setDate(weekEnd.getDate() + 6);
@@ -111,7 +148,7 @@ export function calculateWeeklySummary(entries: TimeEntry[], weekStart: Date): W
     const date = new Date(weekStart);
     date.setDate(date.getDate() + i);
     const dateStr = date.toISOString().split("T")[0];
-    days.push(calculateDailySummary(entries, dateStr));
+    days.push(calculateDailySummary(entries, dateStr, options));
   }
 
   const daysWithWork = days.filter((d) => d.workMinutes > 0);
@@ -131,7 +168,12 @@ export function calculateWeeklySummary(entries: TimeEntry[], weekStart: Date): W
   };
 }
 
-export function calculateMonthlySummary(entries: TimeEntry[], year: number, month: number): MonthlySummary {
+export function calculateMonthlySummary(
+  entries: TimeEntry[],
+  year: number,
+  month: number,
+  options: DailySummaryOptions = {}
+): MonthlySummary {
   const weeks: WeeklySummary[] = [];
   const firstDay = new Date(year, month, 1);
   const lastDay = new Date(year, month + 1, 0);
@@ -143,7 +185,7 @@ export function calculateMonthlySummary(entries: TimeEntry[], year: number, mont
   currentWeekStart.setDate(currentWeekStart.getDate() + diff);
 
   while (currentWeekStart <= lastDay) {
-    weeks.push(calculateWeeklySummary(entries, new Date(currentWeekStart)));
+    weeks.push(calculateWeeklySummary(entries, new Date(currentWeekStart), options));
     currentWeekStart.setDate(currentWeekStart.getDate() + 7);
   }
 

@@ -38,7 +38,7 @@ const Reports = () => {
 
   // Calculate effective work minutes for a date
   const getEffectiveWorkMinutes = (dateStr: string) => {
-    const summary = calculateDailySummary(entries, dateStr);
+    const summary = calculateDailySummary(entries, dateStr, { absences, holidays });
     const holiday = isHoliday(dateStr, holidays);
     const absence = getAbsenceForDate(dateStr);
     const isWeekend = isWeekendDate(dateStr);
@@ -75,7 +75,7 @@ const Reports = () => {
       const dateStr = date.toISOString().split("T")[0];
       
       const effectiveMinutes = getEffectiveWorkMinutes(dateStr);
-      const summary = calculateDailySummary(entries, dateStr);
+      const summary = calculateDailySummary(entries, dateStr, { absences, holidays });
       
       if (effectiveMinutes > 0) {
         totalWorkMinutes += effectiveMinutes;
@@ -111,7 +111,7 @@ const Reports = () => {
       const dateStr = `${year}-${String(month + 1).padStart(2, "0")}-${String(d).padStart(2, "0")}`;
       
       const effectiveMinutes = getEffectiveWorkMinutes(dateStr);
-      const summary = calculateDailySummary(entries, dateStr);
+      const summary = calculateDailySummary(entries, dateStr, { absences, holidays });
       
       if (effectiveMinutes > 0) {
         totalWorkMinutes += effectiveMinutes;
