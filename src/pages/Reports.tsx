@@ -1,7 +1,7 @@
 import { useState, useMemo } from "react";
 import { useTimeEntries } from "@/hooks/useTimeEntries";
 import { useAbsences } from "@/hooks/useAbsences";
-import { calculateDailySummary, formatMinutesToTime, getWeekNumber } from "@/lib/timeCalculations";
+import { calculateDailySummary, formatSecondsToTime, getWeekNumber } from "@/lib/timeCalculations";
 import { getSlovenianHolidays, isHoliday } from "@/lib/slovenianHolidays";
 import { BottomNav } from "@/components/BottomNav";
 import { Card, CardContent } from "@/components/ui/card";
@@ -9,7 +9,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { ChevronLeft, ChevronRight, Clock, Calendar, TrendingUp, Users } from "lucide-react";
 
-const STANDARD_WORK_MINUTES = 480; // 8 hours
+const STANDARD_WORK_SECONDS = 28800; // 8 hours in seconds
 
 const Reports = () => {
   const [currentDate, setCurrentDate] = useState(new Date());
@@ -36,21 +36,21 @@ const Reports = () => {
     return day === 0 || day === 6;
   };
 
-  // Calculate effective work minutes for a date
-  const getEffectiveWorkMinutes = (dateStr: string) => {
+  // Calculate effective work seconds for a date
+  const getEffectiveWorkSeconds = (dateStr: string) => {
     const summary = calculateDailySummary(entries, dateStr, { absences, holidays });
     const holiday = isHoliday(dateStr, holidays);
     const absence = getAbsenceForDate(dateStr);
     const isWeekend = isWeekendDate(dateStr);
     
     // If there's actual work entered, use that (even on holidays/weekends)
-    if (summary.workMinutes > 0) {
-      return summary.workMinutes;
+    if (summary.workSeconds > 0) {
+      return summary.workSeconds;
     }
     
     // Holidays and absences on weekdays count as 8 hours
     if (!isWeekend && (holiday || absence)) {
-      return STANDARD_WORK_MINUTES;
+      return STANDARD_WORK_SECONDS;
     }
     
     return 0;
@@ -65,8 +65,8 @@ const Reports = () => {
 
   // Calculate weekly summary including holidays and absences
   const calculateWeekSummary = () => {
-    let totalWorkMinutes = 0;
-    let totalOvertimeMinutes = 0;
+    let totalWorkSeconds = 0;
+    let totalOvertimeSeconds = 0;
     let daysWorked = 0;
 
     for (let i = 0; i < 7; i++) {
@@ -74,28 +74,28 @@ const Reports = () => {
       date.setDate(date.getDate() + i);
       const dateStr = date.toISOString().split("T")[0];
       
-      const effectiveMinutes = getEffectiveWorkMinutes(dateStr);
+      const effectiveSeconds = getEffectiveWorkSeconds(dateStr);
       const summary = calculateDailySummary(entries, dateStr, { absences, holidays });
       
-      if (effectiveMinutes > 0) {
-        totalWorkMinutes += effectiveMinutes;
+      if (effectiveSeconds > 0) {
+        totalWorkSeconds += effectiveSeconds;
         daysWorked++;
         
         // Work on weekends/holidays counts entirely as overtime
-        if (isOvertimeDay(dateStr) && summary.workMinutes > 0) {
-          totalOvertimeMinutes += summary.workMinutes;
+        if (isOvertimeDay(dateStr) && summary.workSeconds > 0) {
+          totalOvertimeSeconds += summary.workSeconds;
         } else {
           // Regular day overtime (work > 8 hours)
-          totalOvertimeMinutes += summary.overtimeMinutes;
+          totalOvertimeSeconds += summary.overtimeSeconds;
         }
       }
     }
 
     return {
-      totalWorkMinutes,
-      totalOvertimeMinutes,
+      totalWorkSeconds,
+      totalOvertimeSeconds,
       daysWorked,
-      averageDailyMinutes: daysWorked > 0 ? totalWorkMinutes / daysWorked : 0,
+      averageDailySeconds: daysWorked > 0 ? totalWorkSeconds / daysWorked : 0,
     };
   };
 
@@ -103,35 +103,35 @@ const Reports = () => {
   const calculateMonthSummary = () => {
     const lastDay = new Date(year, month + 1, 0);
     
-    let totalWorkMinutes = 0;
-    let totalOvertimeMinutes = 0;
+    let totalWorkSeconds = 0;
+    let totalOvertimeSeconds = 0;
     let daysWorked = 0;
 
     for (let d = 1; d <= lastDay.getDate(); d++) {
       const dateStr = `${year}-${String(month + 1).padStart(2, "0")}-${String(d).padStart(2, "0")}`;
       
-      const effectiveMinutes = getEffectiveWorkMinutes(dateStr);
+      const effectiveSeconds = getEffectiveWorkSeconds(dateStr);
       const summary = calculateDailySummary(entries, dateStr, { absences, holidays });
       
-      if (effectiveMinutes > 0) {
-        totalWorkMinutes += effectiveMinutes;
+      if (effectiveSeconds > 0) {
+        totalWorkSeconds += effectiveSeconds;
         daysWorked++;
         
         // Work on weekends/holidays counts entirely as overtime
-        if (isOvertimeDay(dateStr) && summary.workMinutes > 0) {
-          totalOvertimeMinutes += summary.workMinutes;
+        if (isOvertimeDay(dateStr) && summary.workSeconds > 0) {
+          totalOvertimeSeconds += summary.workSeconds;
         } else {
           // Regular day overtime (work > 8 hours)
-          totalOvertimeMinutes += summary.overtimeMinutes;
+          totalOvertimeSeconds += summary.overtimeSeconds;
         }
       }
     }
 
     return {
-      totalWorkMinutes,
-      totalOvertimeMinutes,
+      totalWorkSeconds,
+      totalOvertimeSeconds,
       daysWorked,
-      averageDailyMinutes: daysWorked > 0 ? totalWorkMinutes / daysWorked : 0,
+      averageDailySeconds: daysWorked > 0 ? totalWorkSeconds / daysWorked : 0,
     };
   };
 
@@ -168,12 +168,12 @@ const Reports = () => {
             <div className="grid grid-cols-2 gap-3">
               <Card><CardContent className="pt-4 text-center">
                 <Clock className="h-8 w-8 mx-auto text-primary mb-2" />
-                <p className="text-2xl font-mono font-bold">{formatMinutesToTime(weeklySummary.totalWorkMinutes)}</p>
+                <p className="text-2xl font-mono font-bold">{formatSecondsToTime(weeklySummary.totalWorkSeconds)}</p>
                 <p className="text-sm text-muted-foreground">Skupaj delo</p>
               </CardContent></Card>
               <Card><CardContent className="pt-4 text-center">
                 <TrendingUp className="h-8 w-8 mx-auto text-warning mb-2" />
-                <p className="text-2xl font-mono font-bold">+{formatMinutesToTime(weeklySummary.totalOvertimeMinutes)}</p>
+                <p className="text-2xl font-mono font-bold">+{formatSecondsToTime(weeklySummary.totalOvertimeSeconds)}</p>
                 <p className="text-sm text-muted-foreground">Nadure</p>
               </CardContent></Card>
               <Card><CardContent className="pt-4 text-center">
@@ -183,7 +183,7 @@ const Reports = () => {
               </CardContent></Card>
               <Card><CardContent className="pt-4 text-center">
                 <Users className="h-8 w-8 mx-auto text-muted-foreground mb-2" />
-                <p className="text-2xl font-mono font-bold">{formatMinutesToTime(Math.round(weeklySummary.averageDailyMinutes))}</p>
+                <p className="text-2xl font-mono font-bold">{formatSecondsToTime(Math.round(weeklySummary.averageDailySeconds))}</p>
                 <p className="text-sm text-muted-foreground">Povprečje/dan</p>
               </CardContent></Card>
             </div>
@@ -199,12 +199,12 @@ const Reports = () => {
             <div className="grid grid-cols-2 gap-3">
               <Card><CardContent className="pt-4 text-center">
                 <Clock className="h-8 w-8 mx-auto text-primary mb-2" />
-                <p className="text-2xl font-mono font-bold">{formatMinutesToTime(monthlySummary.totalWorkMinutes)}</p>
+                <p className="text-2xl font-mono font-bold">{formatSecondsToTime(monthlySummary.totalWorkSeconds)}</p>
                 <p className="text-sm text-muted-foreground">Skupaj delo</p>
               </CardContent></Card>
               <Card><CardContent className="pt-4 text-center">
                 <TrendingUp className="h-8 w-8 mx-auto text-warning mb-2" />
-                <p className="text-2xl font-mono font-bold">+{formatMinutesToTime(monthlySummary.totalOvertimeMinutes)}</p>
+                <p className="text-2xl font-mono font-bold">+{formatSecondsToTime(monthlySummary.totalOvertimeSeconds)}</p>
                 <p className="text-sm text-muted-foreground">Nadure</p>
               </CardContent></Card>
               <Card><CardContent className="pt-4 text-center">
@@ -214,7 +214,7 @@ const Reports = () => {
               </CardContent></Card>
               <Card><CardContent className="pt-4 text-center">
                 <Users className="h-8 w-8 mx-auto text-muted-foreground mb-2" />
-                <p className="text-2xl font-mono font-bold">{formatMinutesToTime(Math.round(monthlySummary.averageDailyMinutes))}</p>
+                <p className="text-2xl font-mono font-bold">{formatSecondsToTime(Math.round(monthlySummary.averageDailySeconds))}</p>
                 <p className="text-sm text-muted-foreground">Povprečje/dan</p>
               </CardContent></Card>
             </div>

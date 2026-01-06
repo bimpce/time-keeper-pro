@@ -1,7 +1,7 @@
 import { useState, useMemo } from "react";
 import { useTimeEntries, TimeEntry } from "@/hooks/useTimeEntries";
 import { useAbsences, Absence, AbsenceType } from "@/hooks/useAbsences";
-import { calculateDailySummary, formatMinutesToTime } from "@/lib/timeCalculations";
+import { calculateDailySummary, formatSecondsToTime } from "@/lib/timeCalculations";
 import { getSlovenianHolidays, isHoliday } from "@/lib/slovenianHolidays";
 import { Timeline } from "@/components/Timeline";
 import { DaySummaryCard } from "@/components/DaySummaryCard";
@@ -52,18 +52,18 @@ const CalendarPage = () => {
     const absence = getAbsenceForDate(dateStr);
     const isWeekend = isWeekendDate(dateStr);
     
-    let effectiveWorkMinutes = summary.workMinutes;
+    let effectiveWorkSeconds = summary.workSeconds;
     
     // If there's actual work entered, use that (even on holidays/weekends)
     // Otherwise, holidays and absences on weekdays count as 8 hours
-    if (summary.workMinutes === 0 && !isWeekend && (holiday || absence)) {
-      effectiveWorkMinutes = 480;
+    if (summary.workSeconds === 0 && !isWeekend && (holiday || absence)) {
+      effectiveWorkSeconds = 28800; // 8 hours in seconds
     }
     
     let status = "none";
-    if (effectiveWorkMinutes > 0 && effectiveWorkMinutes < 480) status = "partial";
-    if (effectiveWorkMinutes >= 480) status = "full";
-    return { status, workMinutes: effectiveWorkMinutes, isHoliday: !!holiday, absence };
+    if (effectiveWorkSeconds > 0 && effectiveWorkSeconds < 28800) status = "partial";
+    if (effectiveWorkSeconds >= 28800) status = "full";
+    return { status, workSeconds: effectiveWorkSeconds, isHoliday: !!holiday, absence };
   };
 
   const prevMonth = () => setCurrentMonth(new Date(year, month - 1, 1));
@@ -104,7 +104,7 @@ const CalendarPage = () => {
               {days.map((day, i) => {
                 if (!day) return <div key={i} />;
                 const dateStr = `${year}-${String(month + 1).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
-                const { status, workMinutes, absence } = getDaySummaryInfo(day);
+                const { status, workSeconds, absence } = getDaySummaryInfo(day);
                 const isSelected = selectedDate === dateStr;
                 const isToday = dateStr === new Date().toISOString().split("T")[0];
                 const holiday = isHoliday(dateStr, holidays);
@@ -133,9 +133,9 @@ const CalendarPage = () => {
                     title={holiday?.name || (absence ? absenceLabels[absence.absence_type].label : undefined)}
                   >
                     <span>{day}</span>
-                    {workMinutes > 0 && (
+                    {workSeconds > 0 && (
                       <span className={`text-[10px] font-mono ${isSelected ? "text-primary-foreground/80" : "opacity-70"}`}>
-                        {formatMinutesToTime(workMinutes)}
+                        {formatSecondsToTime(workSeconds).slice(0, 5)}
                       </span>
                     )}
                     {(holiday || absence) && !isSelected && (

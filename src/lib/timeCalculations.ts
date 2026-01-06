@@ -3,15 +3,14 @@ import { Absence } from "@/hooks/useAbsences";
 import { Holiday } from "@/lib/slovenianHolidays";
 
 const STANDARD_WORK_HOURS = 8;
-const STANDARD_BREAK_MINUTES = 30;
-const BREAK_THRESHOLD_MINUTES = 3;
-const DEFAULT_LUNCH_BREAK_MINUTES = 30;
+const BREAK_THRESHOLD_SECONDS = 180; // 3 minutes in seconds
+const DEFAULT_LUNCH_BREAK_SECONDS = 1800; // 30 minutes in seconds
 
 export interface DailySummary {
   date: string;
-  workMinutes: number;
-  breakMinutes: number;
-  overtimeMinutes: number;
+  workSeconds: number;
+  breakSeconds: number;
+  overtimeSeconds: number;
   entries: TimeEntry[];
   isComplete: boolean;
 }
@@ -19,28 +18,31 @@ export interface DailySummary {
 export interface WeeklySummary {
   weekStart: string;
   weekEnd: string;
-  totalWorkMinutes: number;
-  totalBreakMinutes: number;
-  totalOvertimeMinutes: number;
+  totalWorkSeconds: number;
+  totalBreakSeconds: number;
+  totalOvertimeSeconds: number;
   daysWorked: number;
-  averageDailyMinutes: number;
+  averageDailySeconds: number;
   days: DailySummary[];
 }
 
 export interface MonthlySummary {
   month: string;
   year: number;
-  totalWorkMinutes: number;
-  totalBreakMinutes: number;
-  totalOvertimeMinutes: number;
+  totalWorkSeconds: number;
+  totalBreakSeconds: number;
+  totalOvertimeSeconds: number;
   daysWorked: number;
-  averageDailyMinutes: number;
+  averageDailySeconds: number;
   weeks: WeeklySummary[];
 }
 
-function timeToMinutes(time: string): number {
-  const [hours, minutes] = time.split(":").map(Number);
-  return hours * 60 + minutes;
+function timeToSeconds(time: string): number {
+  const parts = time.split(":").map(Number);
+  const hours = parts[0] || 0;
+  const minutes = parts[1] || 0;
+  const seconds = parts[2] || 0;
+  return hours * 3600 + minutes * 60 + seconds;
 }
 
 export function formatMinutesToTime(minutes: number): string {
@@ -50,15 +52,26 @@ export function formatMinutesToTime(minutes: number): string {
   return `${sign}${hours.toString().padStart(2, "0")}:${mins.toString().padStart(2, "0")}`;
 }
 
-export function formatMinutesToTimeWithSeconds(minutes: number): string {
-  const hours = Math.floor(Math.abs(minutes) / 60);
-  const mins = Math.abs(minutes) % 60;
-  const sign = minutes < 0 ? "-" : "";
-  return `${sign}${hours.toString().padStart(2, "0")}:${mins.toString().padStart(2, "0")}:00`;
+export function formatSecondsToTime(totalSeconds: number): string {
+  const sign = totalSeconds < 0 ? "-" : "";
+  const absSeconds = Math.abs(totalSeconds);
+  const hours = Math.floor(absSeconds / 3600);
+  const minutes = Math.floor((absSeconds % 3600) / 60);
+  const seconds = absSeconds % 60;
+  return `${sign}${hours.toString().padStart(2, "0")}:${minutes.toString().padStart(2, "0")}:${seconds.toString().padStart(2, "0")}`;
+}
+
+export function formatSecondsToMinutes(totalSeconds: number): string {
+  const minutes = Math.round(totalSeconds / 60);
+  return formatMinutesToTime(minutes);
 }
 
 export function formatMinutesToHoursDecimal(minutes: number): string {
   return (minutes / 60).toFixed(2);
+}
+
+export function formatSecondsToHoursDecimal(seconds: number): string {
+  return (seconds / 3600).toFixed(2);
 }
 
 export interface DailySummaryOptions {
@@ -89,30 +102,30 @@ export function calculateDailySummary(
   const dayOfWeek = new Date(date).getDay();
   const isWeekend = dayOfWeek === 0 || dayOfWeek === 6;
 
-  let workMinutes = 0;
-  let breakMinutes = 0;
+  let workSeconds = 0;
+  let breakSeconds = 0;
   let lastDeparture: number | null = null;
   let isAtWork = false;
   let arrivalTime: number | null = null;
 
   for (const entry of dayEntries) {
-    const entryMinutes = timeToMinutes(entry.entry_time);
+    const entrySeconds = timeToSeconds(entry.entry_time);
 
     if (entry.entry_type === "arrival") {
       // Check for break (gap > 3 minutes from last departure)
       if (lastDeparture !== null) {
-        const gap = entryMinutes - lastDeparture;
-        if (gap > BREAK_THRESHOLD_MINUTES) {
-          breakMinutes += gap;
+        const gap = entrySeconds - lastDeparture;
+        if (gap > BREAK_THRESHOLD_SECONDS) {
+          breakSeconds += gap;
         }
       }
-      arrivalTime = entryMinutes;
+      arrivalTime = entrySeconds;
       isAtWork = true;
     } else if (entry.entry_type === "departure") {
       if (arrivalTime !== null) {
-        workMinutes += entryMinutes - arrivalTime;
+        workSeconds += entrySeconds - arrivalTime;
       }
-      lastDeparture = entryMinutes;
+      lastDeparture = entrySeconds;
       isAtWork = false;
       arrivalTime = null;
     }
@@ -121,22 +134,22 @@ export function calculateDailySummary(
   // Add default 30min lunch break if it's a work day without absence/holiday
   // and there are entries but no recorded breaks
   const isWorkDay = dayEntries.length > 0 && !hasAbsence && !isHoliday && !isWeekend;
-  if (isWorkDay && breakMinutes === 0) {
-    breakMinutes = DEFAULT_LUNCH_BREAK_MINUTES;
+  if (isWorkDay && breakSeconds === 0) {
+    breakSeconds = DEFAULT_LUNCH_BREAK_SECONDS;
   }
 
   // Calculate overtime (work > 8 hours)
-  const standardWorkMinutes = STANDARD_WORK_HOURS * 60;
-  const overtimeMinutes = Math.max(0, workMinutes - standardWorkMinutes);
+  const standardWorkSeconds = STANDARD_WORK_HOURS * 3600;
+  const overtimeSeconds = Math.max(0, workSeconds - standardWorkSeconds);
 
   // Check if day is complete (ends with departure)
   const isComplete = dayEntries.length > 0 && !isAtWork;
 
   return {
     date,
-    workMinutes,
-    breakMinutes,
-    overtimeMinutes,
+    workSeconds,
+    breakSeconds,
+    overtimeSeconds,
     entries: dayEntries,
     isComplete,
   };
@@ -158,19 +171,19 @@ export function calculateWeeklySummary(
     days.push(calculateDailySummary(entries, dateStr, options));
   }
 
-  const daysWithWork = days.filter((d) => d.workMinutes > 0);
-  const totalWorkMinutes = days.reduce((sum, d) => sum + d.workMinutes, 0);
-  const totalBreakMinutes = days.reduce((sum, d) => sum + d.breakMinutes, 0);
-  const totalOvertimeMinutes = days.reduce((sum, d) => sum + d.overtimeMinutes, 0);
+  const daysWithWork = days.filter((d) => d.workSeconds > 0);
+  const totalWorkSeconds = days.reduce((sum, d) => sum + d.workSeconds, 0);
+  const totalBreakSeconds = days.reduce((sum, d) => sum + d.breakSeconds, 0);
+  const totalOvertimeSeconds = days.reduce((sum, d) => sum + d.overtimeSeconds, 0);
 
   return {
     weekStart: weekStart.toISOString().split("T")[0],
     weekEnd: weekEnd.toISOString().split("T")[0],
-    totalWorkMinutes,
-    totalBreakMinutes,
-    totalOvertimeMinutes,
+    totalWorkSeconds,
+    totalBreakSeconds,
+    totalOvertimeSeconds,
     daysWorked: daysWithWork.length,
-    averageDailyMinutes: daysWithWork.length > 0 ? totalWorkMinutes / daysWithWork.length : 0,
+    averageDailySeconds: daysWithWork.length > 0 ? totalWorkSeconds / daysWithWork.length : 0,
     days,
   };
 }
@@ -197,19 +210,19 @@ export function calculateMonthlySummary(
   }
 
   const monthStr = firstDay.toLocaleDateString("sl-SI", { month: "long" });
-  const totalWorkMinutes = weeks.reduce((sum, w) => sum + w.totalWorkMinutes, 0);
-  const totalBreakMinutes = weeks.reduce((sum, w) => sum + w.totalBreakMinutes, 0);
-  const totalOvertimeMinutes = weeks.reduce((sum, w) => sum + w.totalOvertimeMinutes, 0);
+  const totalWorkSeconds = weeks.reduce((sum, w) => sum + w.totalWorkSeconds, 0);
+  const totalBreakSeconds = weeks.reduce((sum, w) => sum + w.totalBreakSeconds, 0);
+  const totalOvertimeSeconds = weeks.reduce((sum, w) => sum + w.totalOvertimeSeconds, 0);
   const daysWorked = weeks.reduce((sum, w) => sum + w.daysWorked, 0);
 
   return {
     month: monthStr,
     year,
-    totalWorkMinutes,
-    totalBreakMinutes,
-    totalOvertimeMinutes,
+    totalWorkSeconds,
+    totalBreakSeconds,
+    totalOvertimeSeconds,
     daysWorked,
-    averageDailyMinutes: daysWorked > 0 ? totalWorkMinutes / daysWorked : 0,
+    averageDailySeconds: daysWorked > 0 ? totalWorkSeconds / daysWorked : 0,
     weeks,
   };
 }
