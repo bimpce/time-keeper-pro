@@ -1,6 +1,7 @@
 import { DailySummary, formatSecondsToTime } from "@/lib/timeCalculations";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Clock, Coffee, TrendingUp, CheckCircle, AlertCircle, Timer } from "lucide-react";
+import { Clock, Coffee, TrendingUp, CheckCircle, AlertCircle, Timer, Info } from "lucide-react";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 interface DaySummaryCardProps {
   summary: DailySummary;
@@ -32,22 +33,44 @@ export function DaySummaryCard({ summary }: DaySummaryCardProps) {
         </CardTitle>
       </CardHeader>
       <CardContent>
-        <div className="grid grid-cols-2 gap-4 mb-4">
-          <div className="text-center">
-            <div className="h-12 w-12 mx-auto rounded-xl bg-primary/10 flex items-center justify-center mb-2">
-              <Clock className="h-6 w-6 text-primary" />
-            </div>
-            <p className="text-2xl font-mono font-bold time-display">{formatSecondsToTime(workSeconds)}</p>
-            <p className="text-xs text-muted-foreground">Neto delo</p>
+        <TooltipProvider>
+          <div className="grid grid-cols-2 gap-4 mb-4">
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <div className="text-center cursor-help">
+                  <div className="h-12 w-12 mx-auto rounded-xl bg-primary/10 flex items-center justify-center mb-2">
+                    <Clock className="h-6 w-6 text-primary" />
+                  </div>
+                  <p className="text-2xl font-mono font-bold time-display">{formatSecondsToTime(workSeconds)}</p>
+                  <p className="text-xs text-muted-foreground flex items-center justify-center gap-1">
+                    Neto delo
+                    <Info className="h-3 w-3" />
+                  </p>
+                </div>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p className="max-w-xs">Dejanski čas dela brez odmorov. Seštevek vseh obdobij med prihodom in odhodom.</p>
+              </TooltipContent>
+            </Tooltip>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <div className="text-center cursor-help">
+                  <div className="h-12 w-12 mx-auto rounded-xl bg-muted flex items-center justify-center mb-2">
+                    <Timer className="h-6 w-6 text-muted-foreground" />
+                  </div>
+                  <p className="text-2xl font-mono font-bold time-display">{formatSecondsToTime(grossSeconds)}</p>
+                  <p className="text-xs text-muted-foreground flex items-center justify-center gap-1">
+                    Bruto čas
+                    <Info className="h-3 w-3" />
+                  </p>
+                </div>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p className="max-w-xs">Celoten čas od prvega prihoda do zadnjega odhoda, vključno z odmori.</p>
+              </TooltipContent>
+            </Tooltip>
           </div>
-          <div className="text-center">
-            <div className="h-12 w-12 mx-auto rounded-xl bg-muted flex items-center justify-center mb-2">
-              <Timer className="h-6 w-6 text-muted-foreground" />
-            </div>
-            <p className="text-2xl font-mono font-bold time-display">{formatSecondsToTime(grossSeconds)}</p>
-            <p className="text-xs text-muted-foreground">Bruto čas</p>
-          </div>
-        </div>
+        </TooltipProvider>
         
         <div className="grid grid-cols-2 gap-4 mb-4">
           <div className="text-center">
