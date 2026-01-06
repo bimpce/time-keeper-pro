@@ -9,6 +9,7 @@ const DEFAULT_LUNCH_BREAK_SECONDS = 1800; // 30 minutes in seconds
 export interface DailySummary {
   date: string;
   workSeconds: number;
+  grossSeconds: number;
   breakSeconds: number;
   actualBreakSeconds: number;
   unusedBreakSeconds: number;
@@ -109,11 +110,17 @@ export function calculateDailySummary(
   let lastDeparture: number | null = null;
   let isAtWork = false;
   let arrivalTime: number | null = null;
+  let firstArrivalSeconds: number | null = null;
+  let lastDepartureSeconds: number | null = null;
 
   for (const entry of dayEntries) {
     const entrySeconds = timeToSeconds(entry.entry_time);
 
     if (entry.entry_type === "arrival") {
+      // Track first arrival
+      if (firstArrivalSeconds === null) {
+        firstArrivalSeconds = entrySeconds;
+      }
       // Check for break (gap > 3 minutes from last departure)
       if (lastDeparture !== null) {
         const gap = entrySeconds - lastDeparture;
@@ -128,10 +135,16 @@ export function calculateDailySummary(
         workSeconds += entrySeconds - arrivalTime;
       }
       lastDeparture = entrySeconds;
+      lastDepartureSeconds = entrySeconds;
       isAtWork = false;
       arrivalTime = null;
     }
   }
+
+  // Calculate gross time (last departure - first arrival)
+  const grossSeconds = (firstArrivalSeconds !== null && lastDepartureSeconds !== null)
+    ? lastDepartureSeconds - firstArrivalSeconds
+    : 0;
 
   // Check if it's a work day (has entries, not absence/holiday/weekend)
   const isWorkDay = dayEntries.length > 0 && !hasAbsence && !isHoliday && !isWeekend;
@@ -163,6 +176,7 @@ export function calculateDailySummary(
   return {
     date,
     workSeconds,
+    grossSeconds,
     breakSeconds,
     actualBreakSeconds,
     unusedBreakSeconds,
