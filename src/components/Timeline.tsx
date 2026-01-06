@@ -5,26 +5,23 @@ import { useState, useRef, useEffect } from "react";
 
 interface TimelineProps {
   entries: TimeEntry[];
-  onEdit?: (entry: TimeEntry) => void;
   onUpdate?: (id: string, newTime: string) => void;
-  onDelete?: (id: string) => void;
+  onAdd?: (entryType: "arrival" | "departure", time: string) => void;
+  date?: string;
 }
 
 // Format time to HH:MM:SS
 const formatTime = (time: string) => time.slice(0, 8);
 
-// Validate time format HH:MM:SS
-const isValidTime = (time: string): boolean => {
-  const regex = /^([0-1]?[0-9]|2[0-3]):([0-5][0-9]):([0-5][0-9])$/;
-  return regex.test(time);
-};
-
-// Normalize time to HH:MM:SS format
+// Validate and normalize time to HH:MM:SS format
 const normalizeTime = (time: string): string | null => {
   const parts = time.split(":");
-  if (parts.length !== 3) return null;
+  if (parts.length < 2 || parts.length > 3) return null;
   
-  const [h, m, s] = parts.map((p) => parseInt(p, 10));
+  const h = parseInt(parts[0], 10);
+  const m = parseInt(parts[1], 10);
+  const s = parts.length === 3 ? parseInt(parts[2], 10) : 0;
+  
   if (isNaN(h) || isNaN(m) || isNaN(s)) return null;
   if (h < 0 || h > 23 || m < 0 || m > 59 || s < 0 || s > 59) return null;
   
@@ -40,17 +37,19 @@ const separateEntries = (entries: TimeEntry[]) => {
     .filter((e) => e.entry_type === "departure")
     .sort((a, b) => a.entry_time.localeCompare(b.entry_time));
   
-  const maxRows = Math.max(arrivals.length, departures.length, 10);
+  const maxRows = Math.max(arrivals.length, departures.length, 5) + 1;
   
   return { arrivals, departures, maxRows };
 };
 
 interface EditableCellProps {
   entry: TimeEntry | undefined;
+  entryType: "arrival" | "departure";
   onUpdate?: (id: string, newTime: string) => void;
+  onAdd?: (entryType: "arrival" | "departure", time: string) => void;
 }
 
-function EditableCell({ entry, onUpdate }: EditableCellProps) {
+function EditableCell({ entry, entryType, onUpdate, onAdd }: EditableCellProps) {
   const [isEditing, setIsEditing] = useState(false);
   const [value, setValue] = useState(entry ? formatTime(entry.entry_time) : "");
   const inputRef = useRef<HTMLInputElement>(null);
@@ -68,18 +67,28 @@ function EditableCell({ entry, onUpdate }: EditableCellProps) {
 
   const handleBlur = () => {
     setIsEditing(false);
-    if (!entry || !onUpdate) return;
     
     const normalized = normalizeTime(value);
-    if (normalized && normalized !== formatTime(entry.entry_time)) {
-      onUpdate(entry.id, normalized);
+    
+    if (entry && onUpdate) {
+      // Editing existing entry
+      if (normalized && normalized !== formatTime(entry.entry_time)) {
+        onUpdate(entry.id, normalized);
+      } else {
+        setValue(formatTime(entry.entry_time));
+      }
+    } else if (!entry && onAdd && normalized) {
+      // Adding new entry
+      onAdd(entryType, normalized);
+      setValue("");
     } else {
-      setValue(formatTime(entry.entry_time));
+      setValue("");
     }
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === "Enter") {
+      e.preventDefault();
       handleBlur();
     } else if (e.key === "Escape") {
       setIsEditing(false);
@@ -88,7 +97,7 @@ function EditableCell({ entry, onUpdate }: EditableCellProps) {
   };
 
   const handleClick = () => {
-    if (entry && onUpdate) {
+    if (onUpdate || onAdd) {
       setIsEditing(true);
     }
   };
@@ -103,18 +112,18 @@ function EditableCell({ entry, onUpdate }: EditableCellProps) {
         onClick={handleClick}
         onBlur={handleBlur}
         onKeyDown={handleKeyDown}
+        placeholder={isEditing ? "HH:MM:SS" : ""}
         className={`h-8 font-mono text-sm border-border bg-background ${
           isEditing 
             ? "ring-2 ring-primary" 
             : "cursor-pointer hover:bg-accent/50"
-        } ${entry ? "text-foreground" : "text-transparent"}`}
-        placeholder=""
+        } ${entry ? "text-foreground" : isEditing ? "text-foreground" : "text-muted-foreground/30"}`}
       />
     </div>
   );
 }
 
-export function Timeline({ entries, onUpdate }: TimelineProps) {
+export function Timeline({ entries, onUpdate, onAdd }: TimelineProps) {
   const { arrivals, departures, maxRows } = separateEntries(entries);
 
   return (
@@ -135,7 +144,9 @@ export function Timeline({ entries, onUpdate }: TimelineProps) {
               <EditableCell
                 key={`arrival-${index}`}
                 entry={arrivals[index]}
+                entryType="arrival"
                 onUpdate={onUpdate}
+                onAdd={onAdd}
               />
             ))}
           </div>
@@ -145,7 +156,9 @@ export function Timeline({ entries, onUpdate }: TimelineProps) {
               <EditableCell
                 key={`departure-${index}`}
                 entry={departures[index]}
+                entryType="departure"
                 onUpdate={onUpdate}
+                onAdd={onAdd}
               />
             ))}
           </div>
