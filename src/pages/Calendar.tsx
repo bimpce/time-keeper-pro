@@ -110,12 +110,21 @@ const CalendarPage = () => {
                 const holiday = isHoliday(dateStr, holidays);
                 const isWeekend = (i % 7) >= 5;
                 
-                // Get absence-specific styling
-                const getAbsenceStyle = () => {
-                  if (!absence || isSelected) return "";
-                  const info = absenceLabels[absence.absence_type];
-                  return info.colorClass;
+                // Priority: selected > holiday > absence > work status > weekend
+                const getBackgroundStyle = () => {
+                  if (isSelected) return "bg-primary text-primary-foreground";
+                  if (holiday) return "bg-destructive/20 text-destructive hover:bg-destructive/30";
+                  if (absence) {
+                    const info = absenceLabels[absence.absence_type];
+                    return info.colorClass;
+                  }
+                  if (status === "full") return "bg-success/20 text-success";
+                  if (status === "partial") return "bg-warning/20 text-warning";
+                  return "hover:bg-muted";
                 };
+                
+                // Weekend: only red number (no background), unless it's a holiday or has other status
+                const isPlainWeekend = isWeekend && !holiday && !absence && status === "none" && !isSelected;
                 
                 return (
                   <button
@@ -124,23 +133,18 @@ const CalendarPage = () => {
                       setSelectedDate(dateStr);
                     }}
                     className={`aspect-square rounded-lg flex flex-col items-center justify-center text-sm font-medium transition-colors p-1 relative
-                      ${isSelected ? "bg-primary text-primary-foreground" : ""}
-                      ${!isSelected && !absence && status === "full" ? "bg-success/20 text-success" : ""}
-                      ${!isSelected && !absence && status === "partial" ? "bg-warning/20 text-warning" : ""}
-                      ${!isSelected && !absence && status === "none" && !holiday && !isWeekend ? "hover:bg-muted" : ""}
-                      ${!isSelected && !absence && (holiday || isWeekend) && status === "none" ? "bg-destructive/10 text-destructive hover:bg-destructive/20" : ""}
-                      ${!isSelected && absence ? getAbsenceStyle() : ""}
+                      ${isPlainWeekend ? "hover:bg-muted" : getBackgroundStyle()}
                       ${isToday && !isSelected ? "ring-2 ring-primary" : ""}
                     `}
                     title={holiday?.name || (absence ? absenceLabels[absence.absence_type].label : undefined)}
                   >
-                    <span>{day}</span>
+                    <span className={isPlainWeekend ? "text-destructive" : ""}>{day}</span>
                     {workSeconds > 0 && (
                       <span className={`text-[10px] font-mono ${isSelected ? "text-primary-foreground/80" : "opacity-70"}`}>
                         {formatSecondsToTime(workSeconds).slice(0, 5)}
                       </span>
                     )}
-                    {(holiday || absence) && !isSelected && (
+                    {(holiday || absence) && !isSelected && !holiday && (
                       <span className={`absolute top-0.5 right-0.5 w-1.5 h-1.5 rounded-full ${
                         absence 
                           ? absence.absence_type === "sick_leave" ? "bg-orange-500" 
