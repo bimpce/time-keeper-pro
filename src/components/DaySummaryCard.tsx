@@ -8,7 +8,7 @@ interface DaySummaryCardProps {
 }
 
 export function DaySummaryCard({ summary }: DaySummaryCardProps) {
-  const { workSeconds, grossSeconds, breakSeconds, actualBreakSeconds, unusedBreakSeconds, overtimeSeconds, isComplete } = summary;
+  const { workSeconds, grossSeconds, breakSeconds, actualBreakSeconds, unusedBreakSeconds, exceededBreakSeconds, overtimeSeconds, isComplete } = summary;
 
   return (
     <Card>
@@ -74,13 +74,23 @@ export function DaySummaryCard({ summary }: DaySummaryCardProps) {
         
         <div className="grid grid-cols-2 gap-4 mb-4">
           <div className="text-center">
-            <div className="h-12 w-12 mx-auto rounded-xl bg-muted flex items-center justify-center mb-2">
-              <Coffee className="h-6 w-6 text-muted-foreground" />
+            <div className={`h-12 w-12 mx-auto rounded-xl flex items-center justify-center mb-2 ${
+              exceededBreakSeconds > 0 ? "bg-destructive/10" : "bg-muted"
+            }`}>
+              <Coffee className={`h-6 w-6 ${exceededBreakSeconds > 0 ? "text-destructive" : "text-muted-foreground"}`} />
             </div>
             <p className="text-lg font-mono font-bold time-display">
-              {formatSecondsToTime(actualBreakSeconds)} / {formatSecondsToTime(unusedBreakSeconds)}
+              {formatSecondsToTime(actualBreakSeconds)}
+              {exceededBreakSeconds > 0 && (
+                <span className="text-destructive"> (+{formatSecondsToTime(exceededBreakSeconds)})</span>
+              )}
+              {unusedBreakSeconds > 0 && (
+                <span className="text-success"> (-{formatSecondsToTime(unusedBreakSeconds)})</span>
+              )}
             </p>
-            <p className="text-xs text-muted-foreground">Poraba odmora: Dejanski / Preostalo</p>
+            <p className="text-xs text-muted-foreground">
+              Poraba odmora {exceededBreakSeconds > 0 ? "(prekoračeno)" : unusedBreakSeconds > 0 ? "(preostanek)" : ""}
+            </p>
           </div>
           <div className="text-center">
             <div className={`h-12 w-12 mx-auto rounded-xl flex items-center justify-center mb-2 ${
