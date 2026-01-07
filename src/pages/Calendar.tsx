@@ -20,6 +20,7 @@ const absenceLabels: Record<AbsenceType, { label: string; icon: React.ReactNode;
 const CalendarPage = () => {
   const [currentMonth, setCurrentMonth] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
+  const [quickAbsenceDate, setQuickAbsenceDate] = useState<string | null>(null);
   const { entries, isLoading, createEntry, updateEntry, deleteEntry } = useTimeEntries();
   const { absences, createAbsence, deleteAbsence, getAbsenceForDate } = useAbsences();
   const [editingEntry, setEditingEntry] = useState<TimeEntry | null>(null);
@@ -119,7 +120,13 @@ const CalendarPage = () => {
                 return (
                   <button
                     key={i}
-                    onClick={() => setSelectedDate(dateStr)}
+                    onClick={() => {
+                      // If no absence exists for this date, open quick absence dialog
+                      if (!absence) {
+                        setQuickAbsenceDate(dateStr);
+                      }
+                      setSelectedDate(dateStr);
+                    }}
                     className={`aspect-square rounded-lg flex flex-col items-center justify-center text-sm font-medium transition-colors p-1 relative
                       ${isSelected ? "bg-primary text-primary-foreground" : ""}
                       ${!isSelected && !absence && status === "full" ? "bg-success/20 text-success" : ""}
@@ -183,6 +190,19 @@ const CalendarPage = () => {
           onSubmit={(data) => createAbsence.mutate(data)} 
           isLoading={createAbsence.isPending}
           defaultDate={selectedDate || undefined}
+        />
+
+        {/* Quick absence dialog triggered by clicking on a day */}
+        <AddAbsenceDialog 
+          onSubmit={(data) => {
+            createAbsence.mutate(data);
+            setQuickAbsenceDate(null);
+          }} 
+          isLoading={createAbsence.isPending}
+          defaultDate={quickAbsenceDate || undefined}
+          open={!!quickAbsenceDate}
+          onOpenChange={(open) => !open && setQuickAbsenceDate(null)}
+          trigger={null}
         />
 
         {selectedDate && selectedSummary && (
