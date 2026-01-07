@@ -7,6 +7,7 @@ import { TimeEntryForm } from "@/components/TimeEntryForm";
 import { Timeline } from "@/components/Timeline";
 import { DaySummaryCard } from "@/components/DaySummaryCard";
 import { EditEntryDialog } from "@/components/EditEntryDialog";
+import { AddAbsenceDialog } from "@/components/AddAbsenceDialog";
 import { BottomNav } from "@/components/BottomNav";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
@@ -16,7 +17,7 @@ const Home = () => {
   const today = new Date().toISOString().split("T")[0];
   const year = new Date().getFullYear();
   const { entries, isLoading, createEntry, updateEntry, deleteEntry } = useTimeEntries(today);
-  const { absences, getAbsenceForDate } = useAbsences();
+  const { absences, getAbsenceForDate, createAbsence } = useAbsences();
   const [editingEntry, setEditingEntry] = useState<TimeEntry | null>(null);
 
   const holidays = useMemo(() => getSlovenianHolidays(year), [year]);
@@ -75,6 +76,14 @@ const Home = () => {
         ) : (
           <>
             <DaySummaryCard summary={summary} />
+
+            {!todayAbsence && (
+              <AddAbsenceDialog
+                onSubmit={(data) => createAbsence.mutate(data)}
+                isLoading={createAbsence.isPending}
+                defaultDate={today}
+              />
+            )}
             
             <TimeEntryForm
               onSubmit={(data) => createEntry.mutate(data)}
