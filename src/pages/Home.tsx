@@ -86,13 +86,6 @@ const Home = () => {
           <>
             <DaySummaryCard summary={summary} />
 
-            
-            <TimeEntryForm
-              onSubmit={(data) => createEntry.mutate(data)}
-              isLoading={createEntry.isPending}
-              defaultDate={today}
-            />
-
             <div>
               <h2 className="text-lg font-semibold mb-3">Današnji vnosi</h2>
               <Timeline
