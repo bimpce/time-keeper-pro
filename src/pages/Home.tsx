@@ -7,7 +7,7 @@ import { TimeEntryForm } from "@/components/TimeEntryForm";
 import { Timeline } from "@/components/Timeline";
 import { DaySummaryCard } from "@/components/DaySummaryCard";
 import { EditEntryDialog } from "@/components/EditEntryDialog";
-import { AddAbsenceDialog } from "@/components/AddAbsenceDialog";
+import { EditAbsenceDialog } from "@/components/EditAbsenceDialog";
 import { BottomNav } from "@/components/BottomNav";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
@@ -17,7 +17,7 @@ const Home = () => {
   const today = new Date().toISOString().split("T")[0];
   const year = new Date().getFullYear();
   const { entries, isLoading, createEntry, updateEntry, deleteEntry } = useTimeEntries(today);
-  const { absences, getAbsenceForDate, createAbsence } = useAbsences();
+  const { absences, getAbsenceForDate, updateAbsence, deleteAbsence } = useAbsences();
   const [editingEntry, setEditingEntry] = useState<TimeEntry | null>(null);
 
   const holidays = useMemo(() => getSlovenianHolidays(year), [year]);
@@ -56,10 +56,19 @@ const Home = () => {
             {todayAbsence && (() => {
               const { label, icon: Icon, variant } = getAbsenceLabel(todayAbsence.absence_type);
               return (
-                <Badge variant={variant} className="gap-1">
-                  <Icon className="h-3 w-3" />
-                  {label}
-                </Badge>
+                <div className="flex items-center gap-2">
+                  <Badge variant={variant} className="gap-1">
+                    <Icon className="h-3 w-3" />
+                    {label}
+                  </Badge>
+                  <EditAbsenceDialog
+                    absence={todayAbsence}
+                    onUpdate={(data) => updateAbsence.mutate(data)}
+                    onDelete={(id) => deleteAbsence.mutate(id)}
+                    isUpdating={updateAbsence.isPending}
+                    isDeleting={deleteAbsence.isPending}
+                  />
+                </div>
               );
             })()}
           </div>

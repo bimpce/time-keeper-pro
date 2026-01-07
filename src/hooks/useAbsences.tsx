@@ -74,6 +74,27 @@ export function useAbsences() {
     },
   });
 
+  const updateAbsence = useMutation({
+    mutationFn: async ({ id, ...absenceData }: CreateAbsenceData & { id: string }) => {
+      const { data, error } = await supabase
+        .from("absences")
+        .update(absenceData)
+        .eq("id", id)
+        .select()
+        .single();
+
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["absences"] });
+      toast({ title: "Odsotnost posodobljena" });
+    },
+    onError: (error) => {
+      toast({ title: "Napaka", description: error.message, variant: "destructive" });
+    },
+  });
+
   const deleteAbsence = useMutation({
     mutationFn: async (id: string) => {
       const { error } = await supabase.from("absences").delete().eq("id", id);
@@ -100,6 +121,7 @@ export function useAbsences() {
     isLoading: absencesQuery.isLoading,
     error: absencesQuery.error,
     createAbsence,
+    updateAbsence,
     deleteAbsence,
     getAbsenceForDate,
   };
