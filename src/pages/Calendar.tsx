@@ -121,10 +121,6 @@ const CalendarPage = () => {
                   <button
                     key={i}
                     onClick={() => {
-                      // If no absence exists for this date, open quick absence dialog
-                      if (!absence) {
-                        setQuickAbsenceDate(dateStr);
-                      }
                       setSelectedDate(dateStr);
                     }}
                     className={`aspect-square rounded-lg flex flex-col items-center justify-center text-sm font-medium transition-colors p-1 relative
