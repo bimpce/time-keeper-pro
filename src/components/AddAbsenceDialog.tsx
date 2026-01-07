@@ -127,43 +127,74 @@ export function AddAbsenceDialog({ onSubmit, isLoading, defaultDate, open: contr
 
           {/* Date Range Selection */}
           <div className="space-y-2">
-            <label className="text-sm font-medium">Datum</label>
-            <Popover>
-              <PopoverTrigger asChild>
-                <Button
-                  variant="outline"
-                  className={cn(
-                    "w-full justify-start text-left font-normal",
-                    !dateRange.from && "text-muted-foreground"
-                  )}
-                >
-                  <CalendarIcon className="mr-2 h-4 w-4" />
-                  {dateRange.from ? (
-                    dateRange.to ? (
-                      <>
-                        {format(dateRange.from, "d. MMM", { locale: sl })} -{" "}
-                        {format(dateRange.to, "d. MMM yyyy", { locale: sl })}
-                      </>
-                    ) : (
-                      format(dateRange.from, "d. MMMM yyyy", { locale: sl })
-                    )
-                  ) : (
-                    <span>Izberi datum</span>
-                  )}
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-auto p-0" align="start">
-                <Calendar
-                  initialFocus
-                  mode="range"
-                  defaultMonth={dateRange.from}
-                  selected={dateRange}
-                  onSelect={(range) => setDateRange({ from: range?.from, to: range?.to })}
-                  numberOfMonths={1}
-                  className="pointer-events-auto"
-                />
-              </PopoverContent>
-            </Popover>
+            <div className="grid grid-cols-2 gap-3">
+              {/* From Date */}
+              <div className="space-y-1">
+                <label className="text-sm font-medium">Od</label>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button
+                      variant="outline"
+                      className={cn(
+                        "w-full justify-start text-left font-normal",
+                        !dateRange.from && "text-muted-foreground"
+                      )}
+                    >
+                      <CalendarIcon className="mr-2 h-4 w-4" />
+                      {dateRange.from ? (
+                        format(dateRange.from, "d. MMM yyyy", { locale: sl })
+                      ) : (
+                        <span>Začetek</span>
+                      )}
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0" align="start">
+                    <Calendar
+                      initialFocus
+                      mode="single"
+                      defaultMonth={dateRange.from}
+                      selected={dateRange.from}
+                      onSelect={(date) => setDateRange({ from: date, to: dateRange.to && date && date > dateRange.to ? date : dateRange.to })}
+                      className="pointer-events-auto"
+                    />
+                  </PopoverContent>
+                </Popover>
+              </div>
+
+              {/* To Date */}
+              <div className="space-y-1">
+                <label className="text-sm font-medium">Do</label>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button
+                      variant="outline"
+                      className={cn(
+                        "w-full justify-start text-left font-normal",
+                        !dateRange.to && "text-muted-foreground"
+                      )}
+                    >
+                      <CalendarIcon className="mr-2 h-4 w-4" />
+                      {dateRange.to ? (
+                        format(dateRange.to, "d. MMM yyyy", { locale: sl })
+                      ) : (
+                        <span>Konec</span>
+                      )}
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0" align="start">
+                    <Calendar
+                      initialFocus
+                      mode="single"
+                      defaultMonth={dateRange.to || dateRange.from}
+                      selected={dateRange.to}
+                      onSelect={(date) => setDateRange({ from: dateRange.from, to: date })}
+                      disabled={(date) => dateRange.from ? date < dateRange.from : false}
+                      className="pointer-events-auto"
+                    />
+                  </PopoverContent>
+                </Popover>
+              </div>
+            </div>
           </div>
 
           {/* Note */}
