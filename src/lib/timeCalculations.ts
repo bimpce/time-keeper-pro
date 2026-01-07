@@ -141,8 +141,8 @@ export function calculateDailySummary(
     }
   }
 
-  // Calculate gross time (last departure - first arrival)
-  const grossSeconds = (firstArrivalSeconds !== null && lastDepartureSeconds !== null)
+  // Calculate raw gross time (last departure - first arrival)
+  const rawGrossSeconds = (firstArrivalSeconds !== null && lastDepartureSeconds !== null)
     ? lastDepartureSeconds - firstArrivalSeconds
     : 0;
 
@@ -155,8 +155,17 @@ export function calculateDailySummary(
   // Set entitled break to 30 min for work days
   const entitledBreakSeconds = isWorkDay ? DEFAULT_LUNCH_BREAK_SECONDS : 0;
   
-  // Calculate unused break (entitled - actual, min 0)
-  const unusedBreakSeconds = Math.max(0, entitledBreakSeconds - actualBreakSeconds);
+  // Calculate break difference (positive = unused, negative = exceeded)
+  const breakDifference = entitledBreakSeconds - actualBreakSeconds;
+  const unusedBreakSeconds = Math.max(0, breakDifference);
+  const exceededBreakSeconds = Math.max(0, -breakDifference);
+  
+  // Adjust gross time based on break usage:
+  // - If break exceeded: add excess to gross time (you were away longer)
+  // - If break unused: subtract unused from gross time (you worked through break)
+  const grossSeconds = isWorkDay 
+    ? rawGrossSeconds + breakDifference 
+    : rawGrossSeconds;
   
   // Display break is always the entitled amount for work days (or actual if higher)
   if (isWorkDay) {
