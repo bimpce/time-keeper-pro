@@ -161,7 +161,16 @@ const Reports = () => {
           <TabsContent value="weekly" className="space-y-4">
             <div className="flex items-center justify-between">
               <Button variant="ghost" size="icon" onClick={prevWeek}><ChevronLeft className="h-5 w-5" /></Button>
-              <span className="font-semibold">Teden {getWeekNumber(weekStart)}</span>
+              <div className="text-center">
+                <span className="font-semibold">Teden {getWeekNumber(weekStart)}</span>
+                <p className="text-sm text-muted-foreground">
+                  {weekStart.toLocaleDateString("sl-SI", { day: "numeric", month: "short" })} – {(() => {
+                    const weekEnd = new Date(weekStart);
+                    weekEnd.setDate(weekEnd.getDate() + 6);
+                    return weekEnd.toLocaleDateString("sl-SI", { day: "numeric", month: "short" });
+                  })()}
+                </p>
+              </div>
               <Button variant="ghost" size="icon" onClick={nextWeek}><ChevronRight className="h-5 w-5" /></Button>
             </div>
 
