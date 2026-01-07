@@ -5,8 +5,6 @@ import { calculateDailySummary, formatSecondsToTime } from "@/lib/timeCalculatio
 import { getSlovenianHolidays, isHoliday } from "@/lib/slovenianHolidays";
 import { Timeline } from "@/components/Timeline";
 import { DaySummaryCard } from "@/components/DaySummaryCard";
-import { EditEntryDialog } from "@/components/EditEntryDialog";
-import { TimeEntryForm } from "@/components/TimeEntryForm";
 import { AddAbsenceDialog } from "@/components/AddAbsenceDialog";
 import { BottomNav } from "@/components/BottomNav";
 import { Button } from "@/components/ui/button";
@@ -218,7 +216,7 @@ const CalendarPage = () => {
               </Card>
             )}
             <DaySummaryCard summary={selectedSummary} />
-            <TimeEntryForm onSubmit={(data) => createEntry.mutate({ ...data, entry_date: selectedDate })} isLoading={createEntry.isPending} defaultDate={selectedDate} />
+            
             <Timeline 
               entries={selectedEntries} 
               onUpdate={(id, newTime) => {
