@@ -7,7 +7,7 @@ import { BottomNav } from "@/components/BottomNav";
 import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
-import { ChevronLeft, ChevronRight, Clock, Calendar, TrendingUp, Users } from "lucide-react";
+import { ChevronLeft, ChevronRight, Clock, Calendar, TrendingUp, Users, Palmtree } from "lucide-react";
 
 const STANDARD_WORK_SECONDS = 28800; // 8 hours in seconds
 
@@ -107,14 +107,21 @@ const Reports = () => {
     let totalOvertimeSeconds = 0;
     let daysWorked = 0;
     let requiredWorkDays = 0;
+    let vacationDays = 0;
 
     for (let d = 1; d <= lastDay.getDate(); d++) {
       const dateStr = `${year}-${String(month + 1).padStart(2, "0")}-${String(d).padStart(2, "0")}`;
       const isWeekend = isWeekendDate(dateStr);
+      const absence = getAbsenceForDate(dateStr);
       
       // Count required work days (Monday-Friday, including holidays)
       if (!isWeekend) {
         requiredWorkDays++;
+        
+        // Count vacation days (only on weekdays)
+        if (absence?.absence_type === "vacation") {
+          vacationDays++;
+        }
       }
       
       const effectiveSeconds = getEffectiveWorkSeconds(dateStr);
@@ -140,6 +147,7 @@ const Reports = () => {
       daysWorked,
       averageDailySeconds: daysWorked > 0 ? totalWorkSeconds / daysWorked : 0,
       requiredHours: requiredWorkDays * 8,
+      vacationDays,
     };
   };
 
@@ -233,6 +241,11 @@ const Reports = () => {
                 <Users className="h-8 w-8 mx-auto text-muted-foreground mb-2" />
                 <p className="text-2xl font-mono font-bold">{formatSecondsToTime(Math.round(monthlySummary.averageDailySeconds))}</p>
                 <p className="text-sm text-muted-foreground">Povprečje/dan</p>
+              </CardContent></Card>
+              <Card className="col-span-2"><CardContent className="pt-4 text-center">
+                <Palmtree className="h-8 w-8 mx-auto text-green-500 mb-2" />
+                <p className="text-2xl font-bold">{monthlySummary.vacationDays}</p>
+                <p className="text-sm text-muted-foreground">Dni dopusta</p>
               </CardContent></Card>
             </div>
           </TabsContent>
