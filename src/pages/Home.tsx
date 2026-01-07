@@ -77,13 +77,6 @@ const Home = () => {
           <>
             <DaySummaryCard summary={summary} />
 
-            {!todayAbsence && (
-              <AddAbsenceDialog
-                onSubmit={(data) => createAbsence.mutate(data)}
-                isLoading={createAbsence.isPending}
-                defaultDate={today}
-              />
-            )}
             
             <TimeEntryForm
               onSubmit={(data) => createEntry.mutate(data)}
