@@ -106,9 +106,16 @@ const Reports = () => {
     let totalWorkSeconds = 0;
     let totalOvertimeSeconds = 0;
     let daysWorked = 0;
+    let requiredWorkDays = 0;
 
     for (let d = 1; d <= lastDay.getDate(); d++) {
       const dateStr = `${year}-${String(month + 1).padStart(2, "0")}-${String(d).padStart(2, "0")}`;
+      const isWeekend = isWeekendDate(dateStr);
+      
+      // Count required work days (Monday-Friday, including holidays)
+      if (!isWeekend) {
+        requiredWorkDays++;
+      }
       
       const effectiveSeconds = getEffectiveWorkSeconds(dateStr);
       const summary = calculateDailySummary(entries, dateStr, { absences, holidays });
@@ -132,6 +139,7 @@ const Reports = () => {
       totalOvertimeSeconds,
       daysWorked,
       averageDailySeconds: daysWorked > 0 ? totalWorkSeconds / daysWorked : 0,
+      requiredHours: requiredWorkDays * 8,
     };
   };
 
@@ -201,7 +209,7 @@ const Reports = () => {
           <TabsContent value="monthly" className="space-y-4">
             <div className="flex items-center justify-between">
               <Button variant="ghost" size="icon" onClick={prevMonth}><ChevronLeft className="h-5 w-5" /></Button>
-              <span className="font-semibold capitalize">{currentDate.toLocaleDateString("sl-SI", { month: "long", year: "numeric" })}</span>
+              <span className="font-semibold capitalize">{currentDate.toLocaleDateString("sl-SI", { month: "long", year: "numeric" })} ({monthlySummary.requiredHours} h)</span>
               <Button variant="ghost" size="icon" onClick={nextMonth}><ChevronRight className="h-5 w-5" /></Button>
             </div>
 
