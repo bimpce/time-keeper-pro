@@ -13,6 +13,7 @@ export interface DailySummary {
   breakSeconds: number;
   actualBreakSeconds: number;
   unusedBreakSeconds: number;
+  exceededBreakSeconds: number;
   overtimeSeconds: number;
   entries: TimeEntry[];
   isComplete: boolean;
@@ -189,6 +190,7 @@ export function calculateDailySummary(
     breakSeconds,
     actualBreakSeconds,
     unusedBreakSeconds,
+    exceededBreakSeconds,
     overtimeSeconds,
     entries: dayEntries,
     isComplete,
