@@ -9,7 +9,7 @@ import { AddAbsenceDialog } from "@/components/AddAbsenceDialog";
 import { BottomNav } from "@/components/BottomNav";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { ChevronLeft, ChevronRight, Trash2, Thermometer, Palmtree, Briefcase } from "lucide-react";
+import { ChevronLeft, ChevronRight, Trash2, Thermometer, Palmtree, Briefcase, ChevronDown, ChevronUp } from "lucide-react";
 
 const absenceLabels: Record<AbsenceType, { label: string; icon: React.ReactNode; colorClass: string }> = {
   sick_leave: { label: "Bolniška", icon: <Thermometer className="h-4 w-4" />, colorClass: "bg-orange-500/20 text-orange-600 border-orange-500/30" },
@@ -24,6 +24,7 @@ const CalendarPage = () => {
   const { entries, isLoading, createEntry, updateEntry, deleteEntry } = useTimeEntries();
   const { absences, createAbsence, deleteAbsence, getAbsenceForDate } = useAbsences();
   const [editingEntry, setEditingEntry] = useState<TimeEntry | null>(null);
+  const [showLegend, setShowLegend] = useState(true);
 
   const year = currentMonth.getFullYear();
   const month = currentMonth.getMonth();
@@ -158,42 +159,51 @@ const CalendarPage = () => {
               })}
             </div>
             <div className="mt-4 pt-3 border-t border-border">
-              <div className="grid grid-cols-2 gap-2 text-xs">
-                <div className="flex items-center gap-2">
-                  <span className="w-4 h-4 rounded bg-success/20 flex items-center justify-center text-[10px] text-success font-medium">✓</span>
-                  <span className="text-muted-foreground">Poln dan (8h+)</span>
+              <button
+                onClick={() => setShowLegend(!showLegend)}
+                className="w-full flex items-center justify-between text-xs text-muted-foreground hover:text-foreground transition-colors py-1"
+              >
+                <span>Legenda</span>
+                {showLegend ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+              </button>
+              {showLegend && (
+                <div className="grid grid-cols-2 gap-2 text-xs mt-2">
+                  <div className="flex items-center gap-2">
+                    <span className="w-4 h-4 rounded bg-success/20 flex items-center justify-center text-[10px] text-success font-medium">✓</span>
+                    <span className="text-muted-foreground">Poln dan (8h+)</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="w-4 h-4 rounded bg-warning/20 flex items-center justify-center text-[10px] text-warning font-medium">~</span>
+                    <span className="text-muted-foreground">Delno (&lt;8h)</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="w-4 h-4 rounded bg-destructive/20 flex items-center justify-center text-[10px] text-destructive font-bold">P</span>
+                    <span className="text-muted-foreground">Praznik</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="w-4 h-4 rounded flex items-center justify-center text-[10px] text-destructive font-bold">6</span>
+                    <span className="text-muted-foreground">Vikend</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="w-4 h-4 rounded bg-orange-500/20 border border-orange-500/30 flex items-center justify-center">
+                      <Thermometer className="w-2.5 h-2.5 text-orange-600" />
+                    </span>
+                    <span className="text-muted-foreground">Bolniška</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="w-4 h-4 rounded bg-green-500/20 border border-green-500/30 flex items-center justify-center">
+                      <Palmtree className="w-2.5 h-2.5 text-green-600" />
+                    </span>
+                    <span className="text-muted-foreground">Dopust</span>
+                  </div>
+                  <div className="flex items-center gap-2 col-span-2">
+                    <span className="w-4 h-4 rounded bg-blue-500/20 border border-blue-500/30 flex items-center justify-center">
+                      <Briefcase className="w-2.5 h-2.5 text-blue-600" />
+                    </span>
+                    <span className="text-muted-foreground">Delo od doma</span>
+                  </div>
                 </div>
-                <div className="flex items-center gap-2">
-                  <span className="w-4 h-4 rounded bg-warning/20 flex items-center justify-center text-[10px] text-warning font-medium">~</span>
-                  <span className="text-muted-foreground">Delno (&lt;8h)</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <span className="w-4 h-4 rounded bg-destructive/20 flex items-center justify-center text-[10px] text-destructive font-bold">P</span>
-                  <span className="text-muted-foreground">Praznik</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <span className="w-4 h-4 rounded flex items-center justify-center text-[10px] text-destructive font-bold">6</span>
-                  <span className="text-muted-foreground">Vikend</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <span className="w-4 h-4 rounded bg-orange-500/20 border border-orange-500/30 flex items-center justify-center">
-                    <Thermometer className="w-2.5 h-2.5 text-orange-600" />
-                  </span>
-                  <span className="text-muted-foreground">Bolniška</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <span className="w-4 h-4 rounded bg-green-500/20 border border-green-500/30 flex items-center justify-center">
-                    <Palmtree className="w-2.5 h-2.5 text-green-600" />
-                  </span>
-                  <span className="text-muted-foreground">Dopust</span>
-                </div>
-                <div className="flex items-center gap-2 col-span-2">
-                  <span className="w-4 h-4 rounded bg-blue-500/20 border border-blue-500/30 flex items-center justify-center">
-                    <Briefcase className="w-2.5 h-2.5 text-blue-600" />
-                  </span>
-                  <span className="text-muted-foreground">Delo od doma</span>
-                </div>
-              </div>
+              )}
             </div>
           </CardContent>
         </Card>
