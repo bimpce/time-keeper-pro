@@ -144,7 +144,7 @@ const CalendarPage = () => {
                     <span className={showRedText ? "text-destructive" : ""}>{day}</span>
                     {workSeconds > 0 && (
                       <span className={`text-[10px] font-mono ${isSelected ? "text-primary-foreground/80" : "opacity-70"}`}>
-                        {formatSecondsToTime(workSeconds).slice(0, 5)}
+                        {(workSeconds / 3600).toFixed(2)}
                       </span>
                     )}
                     {absence && !isSelected && !isWeekend && !holiday && (
