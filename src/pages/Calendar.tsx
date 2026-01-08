@@ -157,30 +157,42 @@ const CalendarPage = () => {
                 );
               })}
             </div>
-            <div className="mt-3 flex flex-wrap items-center gap-3 text-xs text-muted-foreground">
-              <div className="flex items-center gap-1.5">
-                <span className="w-3 h-3 rounded bg-success/20" />
-                <span>Poln dan</span>
-              </div>
-              <div className="flex items-center gap-1.5">
-                <span className="w-3 h-3 rounded bg-warning/20" />
-                <span>Delno</span>
-              </div>
-              <div className="flex items-center gap-1.5">
-                <span className="w-3 h-3 rounded bg-destructive/10" />
-                <span>Praznik</span>
-              </div>
-              <div className="flex items-center gap-1.5">
-                <span className="w-3 h-3 rounded bg-orange-500/20" />
-                <span>Bolniška</span>
-              </div>
-              <div className="flex items-center gap-1.5">
-                <span className="w-3 h-3 rounded bg-green-500/20" />
-                <span>Dopust</span>
-              </div>
-              <div className="flex items-center gap-1.5">
-                <span className="w-3 h-3 rounded bg-blue-500/20" />
-                <span>Od doma</span>
+            <div className="mt-4 pt-3 border-t border-border">
+              <div className="grid grid-cols-2 gap-2 text-xs">
+                <div className="flex items-center gap-2">
+                  <span className="w-4 h-4 rounded bg-success/20 flex items-center justify-center text-[10px] text-success font-medium">✓</span>
+                  <span className="text-muted-foreground">Poln dan (8h+)</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="w-4 h-4 rounded bg-warning/20 flex items-center justify-center text-[10px] text-warning font-medium">~</span>
+                  <span className="text-muted-foreground">Delno (&lt;8h)</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="w-4 h-4 rounded bg-destructive/20 flex items-center justify-center text-[10px] text-destructive font-bold">P</span>
+                  <span className="text-muted-foreground">Praznik</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="w-4 h-4 rounded flex items-center justify-center text-[10px] text-destructive font-bold">6</span>
+                  <span className="text-muted-foreground">Vikend</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="w-4 h-4 rounded bg-orange-500/20 border border-orange-500/30 flex items-center justify-center">
+                    <Thermometer className="w-2.5 h-2.5 text-orange-600" />
+                  </span>
+                  <span className="text-muted-foreground">Bolniška</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="w-4 h-4 rounded bg-green-500/20 border border-green-500/30 flex items-center justify-center">
+                    <Palmtree className="w-2.5 h-2.5 text-green-600" />
+                  </span>
+                  <span className="text-muted-foreground">Dopust</span>
+                </div>
+                <div className="flex items-center gap-2 col-span-2">
+                  <span className="w-4 h-4 rounded bg-blue-500/20 border border-blue-500/30 flex items-center justify-center">
+                    <Briefcase className="w-2.5 h-2.5 text-blue-600" />
+                  </span>
+                  <span className="text-muted-foreground">Delo od doma</span>
+                </div>
               </div>
             </div>
           </CardContent>
