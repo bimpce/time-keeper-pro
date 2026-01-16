@@ -50,12 +50,15 @@ const Reports = () => {
   };
 
   const calculateMonthSummary = () => {
+    const today = new Date();
     const lastDay = new Date(year, month + 1, 0);
+    const isCurrentMonth = year === today.getFullYear() && month === today.getMonth();
+    const maxDay = isCurrentMonth ? today.getDate() : lastDay.getDate();
     
-    let totalWorkSeconds = 0;
-    let totalOvertimeSeconds = 0;
+    let totalGrossSeconds = 0;
     let daysWorked = 0;
     let requiredWorkDays = 0;
+    let workedOrCoveredDays = 0; // Days with actual work OR holiday/absence coverage
     let vacationDays = 0;
 
     for (let d = 1; d <= lastDay.getDate(); d++) {
@@ -71,26 +74,27 @@ const Reports = () => {
         }
       }
       
-      const effectiveSeconds = getEffectiveWorkSeconds(dateStr);
-      const summary = calculateDailySummary(entries, dateStr, { absences, holidays });
-      
-      if (effectiveSeconds > 0) {
-        totalWorkSeconds += effectiveSeconds;
-        daysWorked++;
+      // Only count days up to today for current month
+      if (d <= maxDay) {
+        const effectiveSeconds = getEffectiveWorkSeconds(dateStr);
         
-        if (isOvertimeDay(dateStr) && summary.grossSeconds > 0) {
-          totalOvertimeSeconds += summary.grossSeconds;
-        } else {
-          totalOvertimeSeconds += summary.overtimeSeconds;
+        if (effectiveSeconds > 0) {
+          totalGrossSeconds += effectiveSeconds;
+          daysWorked++;
+          workedOrCoveredDays++;
         }
       }
     }
 
+    // Cumulative overtime: total gross hours - (worked/covered days × 8 hours)
+    const expectedSeconds = workedOrCoveredDays * STANDARD_WORK_SECONDS;
+    const totalOvertimeSeconds = Math.max(0, totalGrossSeconds - expectedSeconds);
+
     return {
-      totalWorkSeconds,
+      totalWorkSeconds: totalGrossSeconds,
       totalOvertimeSeconds,
       daysWorked,
-      averageDailySeconds: daysWorked > 0 ? totalWorkSeconds / daysWorked : 0,
+      averageDailySeconds: daysWorked > 0 ? totalGrossSeconds / daysWorked : 0,
       requiredHours: requiredWorkDays * 8,
       vacationDays,
     };
