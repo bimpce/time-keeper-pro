@@ -86,9 +86,10 @@ const Reports = () => {
       }
     }
 
-    // Cumulative overtime: total gross hours - (worked/covered days × 8 hours)
+    // Cumulative overtime/deficit: total gross hours - (worked/covered days × 8 hours)
+    // Can be negative (deficit) or positive (overtime)
     const expectedSeconds = workedOrCoveredDays * STANDARD_WORK_SECONDS;
-    const totalOvertimeSeconds = Math.max(0, totalGrossSeconds - expectedSeconds);
+    const totalOvertimeSeconds = totalGrossSeconds - expectedSeconds;
 
     return {
       totalWorkSeconds: totalGrossSeconds,
@@ -127,9 +128,11 @@ const Reports = () => {
             <p className="text-sm text-muted-foreground">Skupaj delo</p>
           </CardContent></Card>
           <Card><CardContent className="pt-4 text-center">
-            <TrendingUp className="h-8 w-8 mx-auto text-warning mb-2" />
-            <p className="text-2xl font-mono font-bold">+{formatSecondsToTime(monthlySummary.totalOvertimeSeconds)}</p>
-            <p className="text-sm text-muted-foreground">Nadure</p>
+            <TrendingUp className={`h-8 w-8 mx-auto mb-2 ${monthlySummary.totalOvertimeSeconds >= 0 ? "text-warning" : "text-destructive"}`} />
+            <p className={`text-2xl font-mono font-bold ${monthlySummary.totalOvertimeSeconds < 0 ? "text-destructive" : ""}`}>
+              {monthlySummary.totalOvertimeSeconds >= 0 ? "+" : "-"}{formatSecondsToTime(Math.abs(monthlySummary.totalOvertimeSeconds))}
+            </p>
+            <p className="text-sm text-muted-foreground">{monthlySummary.totalOvertimeSeconds >= 0 ? "Nadure" : "Primanjkljaj"}</p>
           </CardContent></Card>
           <Card><CardContent className="pt-4 text-center">
             <Calendar className="h-8 w-8 mx-auto text-muted-foreground mb-2" />
