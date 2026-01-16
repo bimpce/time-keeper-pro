@@ -173,12 +173,10 @@ export function calculateDailySummary(
     breakSeconds = Math.max(entitledBreakSeconds, actualBreakSeconds);
   }
 
-  // Calculate overtime based on actual work time compared to 8 hours standard
-  // The unused break is NOT added for overtime calculation
-  // Logic: gross span (08:07:03) + unused break (3:20) = 08:10:23 vs 8:30 (8h work + 30min break)
-  // This is equivalent to: work time (07:40:23) vs 8:00 standard
+  // Calculate overtime based on gross time compared to 8 hours standard
+  // Everything above 8 hours gross counts as overtime
   const standardWorkSeconds = STANDARD_WORK_HOURS * 3600;
-  const overtimeSeconds = Math.max(0, workSeconds - standardWorkSeconds);
+  const overtimeSeconds = Math.max(0, grossSeconds - standardWorkSeconds);
 
   // Check if day is complete (ends with departure)
   const isComplete = dayEntries.length > 0 && !isAtWork;
