@@ -94,9 +94,10 @@ export function EditEntryDialog({ entry, open, onOpenChange, onSubmit, isLoading
           </div>
 
           <div className="space-y-3">
-            <Label>Čas (HH:MM:SS)</Label>
+            <Label htmlFor="edit-time-hours">Čas (HH:MM:SS)</Label>
             <div className="flex items-center gap-2">
               <Input
+                id="edit-time-hours"
                 type="number"
                 placeholder="UU"
                 value={hours}
@@ -108,6 +109,7 @@ export function EditEntryDialog({ entry, open, onOpenChange, onSubmit, isLoading
               />
               <span className="text-2xl font-bold text-muted-foreground">:</span>
               <Input
+                id="edit-time-minutes"
                 type="number"
                 placeholder="MM"
                 value={minutes}
@@ -119,6 +121,7 @@ export function EditEntryDialog({ entry, open, onOpenChange, onSubmit, isLoading
               />
               <span className="text-2xl font-bold text-muted-foreground">:</span>
               <Input
+                id="edit-time-seconds"
                 type="number"
                 placeholder="SS"
                 value={seconds}

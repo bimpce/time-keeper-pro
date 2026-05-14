@@ -58,7 +58,7 @@ const Auth = () => {
           <div className="mx-auto mb-4 h-16 w-16 rounded-2xl bg-primary/10 flex items-center justify-center">
             <Clock className="h-8 w-8 text-primary" />
           </div>
-          <CardTitle className="text-2xl">Delovne Ure</CardTitle>
+          <h1 className="text-2xl font-semibold leading-none tracking-tight">Delovne Ure</h1>
           <CardDescription>
             {isLogin ? "Prijavite se v svoj račun" : "Ustvarite nov račun"}
           </CardDescription>

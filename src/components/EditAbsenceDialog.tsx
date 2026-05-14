@@ -96,7 +96,7 @@ export function EditAbsenceDialog({ absence, onUpdate, onDelete, isUpdating, isD
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button variant="ghost" size="icon" className="h-8 w-8">
+        <Button variant="ghost" size="icon" className="h-8 w-8" aria-label="Uredi odsotnost">
           <Pencil className="h-4 w-4" />
         </Button>
       </DialogTrigger>
@@ -171,8 +171,9 @@ export function EditAbsenceDialog({ absence, onUpdate, onDelete, isUpdating, isD
 
           {/* Note */}
           <div className="space-y-2">
-            <label className="text-sm font-medium">Opomba (neobvezno)</label>
+            <label htmlFor="edit-absence-note" className="text-sm font-medium">Opomba (neobvezno)</label>
             <Textarea
+              id="edit-absence-note"
               value={note}
               onChange={(e) => setNote(e.target.value)}
               placeholder="Dodaj opombo..."

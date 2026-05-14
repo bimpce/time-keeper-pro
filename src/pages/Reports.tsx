@@ -116,10 +116,12 @@ const Reports = () => {
 
       <main className="container py-4 space-y-4">
         <div className="flex items-center justify-between">
-          <Button variant="ghost" size="icon" onClick={prevMonth}><ChevronLeft className="h-5 w-5" /></Button>
+          <Button variant="ghost" size="icon" onClick={prevMonth} aria-label="Prejšnji mesec"><ChevronLeft className="h-5 w-5" /></Button>
           <span className="font-semibold capitalize">{currentDate.toLocaleDateString("sl-SI", { month: "long", year: "numeric" })} ({monthlySummary.requiredHours} h)</span>
-          <Button variant="ghost" size="icon" onClick={nextMonth}><ChevronRight className="h-5 w-5" /></Button>
+          <Button variant="ghost" size="icon" onClick={nextMonth} aria-label="Naslednji mesec"><ChevronRight className="h-5 w-5" /></Button>
         </div>
+
+        <h2 className="text-lg font-semibold">Povzetek meseca</h2>
 
         <div className="grid grid-cols-2 gap-3">
           <Card><CardContent className="pt-4 text-center">
