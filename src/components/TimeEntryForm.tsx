@@ -94,9 +94,10 @@ export function TimeEntryForm({ onSubmit, isLoading, defaultDate }: TimeEntryFor
           </div>
 
           <div className="space-y-3">
-            <Label>Čas (HH:MM:SS)</Label>
+            <Label htmlFor="time-hours">Čas (HH:MM:SS)</Label>
             <div className="flex items-center gap-2">
               <Input
+                id="time-hours"
                 type="number"
                 placeholder="UU"
                 value={hours}
@@ -108,6 +109,7 @@ export function TimeEntryForm({ onSubmit, isLoading, defaultDate }: TimeEntryFor
               />
               <span className="text-2xl font-bold text-muted-foreground">:</span>
               <Input
+                id="time-minutes"
                 type="number"
                 placeholder="MM"
                 value={minutes}
@@ -119,6 +121,7 @@ export function TimeEntryForm({ onSubmit, isLoading, defaultDate }: TimeEntryFor
               />
               <span className="text-2xl font-bold text-muted-foreground">:</span>
               <Input
+                id="time-seconds"
                 type="number"
                 placeholder="SS"
                 value={seconds}

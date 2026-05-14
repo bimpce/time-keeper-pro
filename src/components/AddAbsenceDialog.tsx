@@ -199,8 +199,9 @@ export function AddAbsenceDialog({ onSubmit, isLoading, defaultDate, open: contr
 
           {/* Note */}
           <div className="space-y-2">
-            <label className="text-sm font-medium">Opomba (neobvezno)</label>
+            <label htmlFor="add-absence-note" className="text-sm font-medium">Opomba (neobvezno)</label>
             <Textarea
+              id="add-absence-note"
               value={note}
               onChange={(e) => setNote(e.target.value)}
               placeholder="Dodaj opombo..."

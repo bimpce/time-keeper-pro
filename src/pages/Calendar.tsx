@@ -80,13 +80,13 @@ const CalendarPage = () => {
       <header className="sticky top-0 z-10 bg-background/80 backdrop-blur-lg border-b border-border">
         <div className="container py-4">
           <div className="flex items-center justify-between">
-            <Button variant="ghost" size="icon" onClick={prevMonth}>
+            <Button variant="ghost" size="icon" onClick={prevMonth} aria-label="Prejšnji mesec">
               <ChevronLeft className="h-5 w-5" />
             </Button>
             <h1 className="text-xl font-bold capitalize">
               {currentMonth.toLocaleDateString("sl-SI", { month: "long", year: "numeric" })}
             </h1>
-            <Button variant="ghost" size="icon" onClick={nextMonth}>
+            <Button variant="ghost" size="icon" onClick={nextMonth} aria-label="Naslednji mesec">
               <ChevronRight className="h-5 w-5" />
             </Button>
           </div>
@@ -251,6 +251,7 @@ const CalendarPage = () => {
                     size="icon" 
                     className="h-8 w-8 text-destructive hover:text-destructive"
                     onClick={() => deleteAbsence.mutate(selectedAbsence.id)}
+                    aria-label="Izbriši odsotnost"
                   >
                     <Trash2 className="h-4 w-4" />
                   </Button>

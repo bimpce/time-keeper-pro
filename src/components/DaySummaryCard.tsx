@@ -13,7 +13,7 @@ export function DaySummaryCard({ summary }: DaySummaryCardProps) {
   return (
     <Card>
       <CardHeader className="pb-2">
-        <CardTitle className="text-lg flex items-center justify-between">
+        <h2 className="text-lg font-semibold leading-none tracking-tight flex items-center justify-between">
           <span>Povzetek dneva</span>
           {summary.entries.length > 0 && (
             <span className={`text-sm font-normal flex items-center gap-1 ${isComplete ? "text-success" : "text-warning"}`}>
@@ -30,7 +30,7 @@ export function DaySummaryCard({ summary }: DaySummaryCardProps) {
               )}
             </span>
           )}
-        </CardTitle>
+        </h2>
       </CardHeader>
       <CardContent>
         <TooltipProvider>

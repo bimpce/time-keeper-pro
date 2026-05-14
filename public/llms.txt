@@ -1,0 +1,8 @@
+# Delovne Ure
+
+> Enostavno spletno orodje za sledenje delovnim uram, naduram, dopustu in odsotnostim. Prilagojeno za slovenske uporabnike z vgrajenimi prazniki.
+
+## Strani
+
+- [/](/): Dnevni pregled in vnos prihodov ter odhodov.
+- [/reports](/reports): Mesečno poročilo o delovnih urah, nadurah in dopustu.
