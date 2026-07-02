@@ -101,8 +101,9 @@ export function useTimeEntries(date?: string) {
 
   const updateEntry = useMutation({
     mutationFn: async (data: UpdateEntryData) => {
-      const { id, ...updates } = data;
+      const { id, ...updates } = updateTimeEntrySchema.parse(data);
       const { data: entry, error } = await supabase
+
         .from("time_entries")
         .update(updates)
         .eq("id", id)
