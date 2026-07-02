@@ -53,14 +53,16 @@ export function useAbsences() {
 
   const createAbsence = useMutation({
     mutationFn: async (absenceData: CreateAbsenceData) => {
+      const parsed = absenceSchema.parse(absenceData);
       const userId = await getUserId();
 
       const { data, error } = await supabase
         .from("absences")
         .insert({
           user_id: userId,
-          ...absenceData,
+          ...parsed,
         })
+
         .select()
         .single();
 
