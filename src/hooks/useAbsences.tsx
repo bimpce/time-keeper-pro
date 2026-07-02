@@ -84,12 +84,19 @@ export function useAbsences() {
 
   const updateAbsence = useMutation({
     mutationFn: async ({ id, ...absenceData }: CreateAbsenceData & { id: string }) => {
+      const parsed = absenceSchema.parse(absenceData);
       const { data, error } = await supabase
         .from("absences")
-        .update(absenceData)
+        .update({
+          absence_type: parsed.absence_type,
+          start_date: parsed.start_date,
+          end_date: parsed.end_date,
+          note: parsed.note,
+        })
         .eq("id", id)
         .select()
         .single();
+
 
       if (error) throw error;
       return data;
