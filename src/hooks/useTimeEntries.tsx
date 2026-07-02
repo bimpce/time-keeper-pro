@@ -64,7 +64,9 @@ export function useTimeEntries(date?: string) {
 
   const createEntry = useMutation({
     mutationFn: async (data: CreateEntryData) => {
+      const parsed = timeEntrySchema.parse(data);
       const userId = await getUserId();
+
 
       const { data: entry, error } = await supabase
         .from("time_entries")
