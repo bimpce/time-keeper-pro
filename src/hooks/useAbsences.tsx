@@ -60,8 +60,12 @@ export function useAbsences() {
         .from("absences")
         .insert({
           user_id: userId,
-          ...parsed,
+          absence_type: parsed.absence_type,
+          start_date: parsed.start_date,
+          end_date: parsed.end_date,
+          note: parsed.note,
         })
+
 
         .select()
         .single();
