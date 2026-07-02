@@ -72,12 +72,13 @@ export function useTimeEntries(date?: string) {
         .from("time_entries")
         .insert({
           user_id: userId,
-          entry_date: data.entry_date,
-          entry_type: data.entry_type,
-          entry_time: data.entry_time,
+          entry_date: parsed.entry_date,
+          entry_type: parsed.entry_type,
+          entry_time: parsed.entry_time,
         })
         .select()
         .single();
+
 
       if (error) throw error;
       return entry;
