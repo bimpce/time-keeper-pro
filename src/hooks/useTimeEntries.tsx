@@ -1,6 +1,8 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { timeEntrySchema, updateTimeEntrySchema } from "@/lib/validation";
+
 
 export type EntryType = "arrival" | "departure";
 
@@ -62,18 +64,21 @@ export function useTimeEntries(date?: string) {
 
   const createEntry = useMutation({
     mutationFn: async (data: CreateEntryData) => {
+      const parsed = timeEntrySchema.parse(data);
       const userId = await getUserId();
+
 
       const { data: entry, error } = await supabase
         .from("time_entries")
         .insert({
           user_id: userId,
-          entry_date: data.entry_date,
-          entry_type: data.entry_type,
-          entry_time: data.entry_time,
+          entry_date: parsed.entry_date,
+          entry_type: parsed.entry_type,
+          entry_time: parsed.entry_time,
         })
         .select()
         .single();
+
 
       if (error) throw error;
       return entry;
@@ -96,8 +101,9 @@ export function useTimeEntries(date?: string) {
 
   const updateEntry = useMutation({
     mutationFn: async (data: UpdateEntryData) => {
-      const { id, ...updates } = data;
+      const { id, ...updates } = updateTimeEntrySchema.parse(data);
       const { data: entry, error } = await supabase
+
         .from("time_entries")
         .update(updates)
         .eq("id", id)

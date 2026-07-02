@@ -1,6 +1,8 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { absenceSchema } from "@/lib/validation";
+
 
 export type AbsenceType = "sick_leave" | "vacation" | "work_from_home";
 
@@ -51,14 +53,20 @@ export function useAbsences() {
 
   const createAbsence = useMutation({
     mutationFn: async (absenceData: CreateAbsenceData) => {
+      const parsed = absenceSchema.parse(absenceData);
       const userId = await getUserId();
 
       const { data, error } = await supabase
         .from("absences")
         .insert({
           user_id: userId,
-          ...absenceData,
+          absence_type: parsed.absence_type,
+          start_date: parsed.start_date,
+          end_date: parsed.end_date,
+          note: parsed.note,
         })
+
+
         .select()
         .single();
 
@@ -76,12 +84,19 @@ export function useAbsences() {
 
   const updateAbsence = useMutation({
     mutationFn: async ({ id, ...absenceData }: CreateAbsenceData & { id: string }) => {
+      const parsed = absenceSchema.parse(absenceData);
       const { data, error } = await supabase
         .from("absences")
-        .update(absenceData)
+        .update({
+          absence_type: parsed.absence_type,
+          start_date: parsed.start_date,
+          end_date: parsed.end_date,
+          note: parsed.note,
+        })
         .eq("id", id)
         .select()
         .single();
+
 
       if (error) throw error;
       return data;
