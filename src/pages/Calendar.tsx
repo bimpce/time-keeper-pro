@@ -13,7 +13,7 @@ import { ChevronLeft, ChevronRight, Trash2, Thermometer, Palmtree, Briefcase, Ch
 
 const absenceLabels: Record<AbsenceType, { label: string; icon: React.ReactNode; colorClass: string }> = {
   sick_leave: { label: "Bolniška", icon: <Thermometer className="h-4 w-4" />, colorClass: "bg-orange-500/20 text-orange-600 border-orange-500/30" },
-  vacation: { label: "Dopust", icon: <Palmtree className="h-4 w-4" />, colorClass: "bg-green-500/20 text-green-600 border-green-500/30" },
+  vacation: { label: "Dopust", icon: <Palmtree className="h-4 w-4" />, colorClass: "bg-purple-500/20 text-purple-600 border-purple-500/30" },
   work_from_home: { label: "Delo od doma", icon: <Briefcase className="h-4 w-4" />, colorClass: "bg-blue-500/20 text-blue-600 border-blue-500/30" },
 };
 
@@ -150,7 +150,7 @@ const CalendarPage = () => {
                     {absence && !isSelected && !isWeekend && !holiday && (
                       <span className={`absolute top-0.5 right-0.5 w-1.5 h-1.5 rounded-full ${
                         absence.absence_type === "sick_leave" ? "bg-orange-500" 
-                          : absence.absence_type === "vacation" ? "bg-green-500" 
+                          : absence.absence_type === "vacation" ? "bg-purple-500" 
                           : "bg-blue-500"
                       }`} />
                     )}
@@ -191,8 +191,8 @@ const CalendarPage = () => {
                     <span className="text-muted-foreground">Bolniška</span>
                   </div>
                   <div className="flex items-center gap-2">
-                    <span className="w-4 h-4 rounded bg-green-500/20 border border-green-500/30 flex items-center justify-center">
-                      <Palmtree className="w-2.5 h-2.5 text-green-600" />
+                    <span className="w-4 h-4 rounded bg-purple-500/20 border border-purple-500/30 flex items-center justify-center">
+                      <Palmtree className="w-2.5 h-2.5 text-purple-600" />
                     </span>
                     <span className="text-muted-foreground">Dopust</span>
                   </div>
