@@ -36,7 +36,7 @@ interface AddAbsenceDialogProps {
 
 const absenceTypes: { value: AbsenceType; label: string; icon: React.ReactNode; color: string }[] = [
   { value: "sick_leave", label: "Bolniška", icon: <Thermometer className="h-5 w-5" />, color: "bg-orange-500/20 text-orange-600 border-orange-500/30" },
-  { value: "vacation", label: "Dopust", icon: <Palmtree className="h-5 w-5" />, color: "bg-green-500/20 text-green-600 border-green-500/30" },
+  { value: "vacation", label: "Dopust", icon: <Palmtree className="h-5 w-5" />, color: "bg-purple-500/20 text-purple-600 border-purple-500/30" },
   { value: "work_from_home", label: "Delo od doma", icon: <Briefcase className="h-5 w-5" />, color: "bg-blue-500/20 text-blue-600 border-blue-500/30" },
 ];
 
