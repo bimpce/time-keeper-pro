@@ -77,6 +77,39 @@ export type Database = {
         }
         Relationships: []
       }
+      vacation_settings: {
+        Row: {
+          annual_quota_days: number
+          carryover_days: number
+          created_at: string
+          current_year: number
+          id: string
+          tracking_enabled: boolean
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          annual_quota_days?: number
+          carryover_days?: number
+          created_at?: string
+          current_year?: number
+          id?: string
+          tracking_enabled?: boolean
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          annual_quota_days?: number
+          carryover_days?: number
+          created_at?: string
+          current_year?: number
+          id?: string
+          tracking_enabled?: boolean
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
