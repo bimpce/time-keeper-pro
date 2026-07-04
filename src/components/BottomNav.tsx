@@ -1,5 +1,5 @@
 import { NavLink, useLocation } from "react-router-dom";
-import { Home, Calendar, BarChart3, LogOut } from "lucide-react";
+import { Home, Calendar, BarChart3, LogOut, Palmtree } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 
@@ -11,6 +11,7 @@ export function BottomNav() {
     { path: "/", icon: Calendar, label: "Koledar" },
     { path: "/today", icon: Home, label: "Danes" },
     { path: "/reports", icon: BarChart3, label: "Poročila" },
+    { path: "/vacation", icon: Palmtree, label: "Dopust" },
   ];
 
   return (

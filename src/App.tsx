@@ -8,6 +8,7 @@ import Home from "./pages/Home";
 import Auth from "./pages/Auth";
 import CalendarPage from "./pages/Calendar";
 import Reports from "./pages/Reports";
+import Vacation from "./pages/Vacation";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -59,6 +60,7 @@ const App = () => (
           <Route path="/" element={<ProtectedRoute><CalendarPage /></ProtectedRoute>} />
           <Route path="/today" element={<ProtectedRoute><Home /></ProtectedRoute>} />
           <Route path="/reports" element={<ProtectedRoute><Reports /></ProtectedRoute>} />
+          <Route path="/vacation" element={<ProtectedRoute><Vacation /></ProtectedRoute>} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>

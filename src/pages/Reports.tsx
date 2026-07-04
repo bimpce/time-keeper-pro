@@ -1,6 +1,9 @@
 import { useState, useMemo } from "react";
 import { useTimeEntries } from "@/hooks/useTimeEntries";
 import { useAbsences } from "@/hooks/useAbsences";
+import { useVacationSettings } from "@/hooks/useVacationSettings";
+import { computeVacationBalance } from "@/lib/vacationCalculations";
+import { VacationSummary } from "@/components/VacationSummary";
 import { calculateDailySummary, formatSecondsToTime } from "@/lib/timeCalculations";
 import { getSlovenianHolidays, isHoliday } from "@/lib/slovenianHolidays";
 import { BottomNav } from "@/components/BottomNav";
@@ -14,9 +17,20 @@ const Reports = () => {
   const [currentDate, setCurrentDate] = useState(new Date());
   const { entries } = useTimeEntries();
   const { absences, getAbsenceForDate } = useAbsences();
+  const { settings: vacationSettings } = useVacationSettings();
 
   const year = currentDate.getFullYear();
   const month = currentDate.getMonth();
+
+  const vacationBalance = useMemo(() => {
+    if (!vacationSettings?.tracking_enabled) return null;
+    return computeVacationBalance(
+      absences,
+      vacationSettings.current_year,
+      Number(vacationSettings.carryover_days),
+      Number(vacationSettings.annual_quota_days)
+    );
+  }, [absences, vacationSettings]);
 
   const holidays = useMemo(() => getSlovenianHolidays(year), [year]);
 
@@ -152,6 +166,9 @@ const Reports = () => {
             <p className="text-sm text-muted-foreground">Dni dopusta</p>
           </CardContent></Card>
         </div>
+        {vacationBalance && vacationSettings && (
+          <VacationSummary year={vacationSettings.current_year} balance={vacationBalance} compact />
+        )}
       </main>
       <BottomNav />
     </div>
