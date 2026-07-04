@@ -166,6 +166,9 @@ const Reports = () => {
             <p className="text-sm text-muted-foreground">Dni dopusta</p>
           </CardContent></Card>
         </div>
+        {vacationBalance && vacationSettings && (
+          <VacationSummary year={vacationSettings.current_year} balance={vacationBalance} compact />
+        )}
       </main>
       <BottomNav />
     </div>
